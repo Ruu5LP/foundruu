@@ -11,6 +11,8 @@ export interface FoundruuConfig {
   workflow?: {
     version: string;
     installedAt: string;
+    /** 管理ファイルの相対パス → 導入時の sha256(update 時のユーザー編集検出に使用) */
+    files?: Record<string, string>;
   };
 }
 

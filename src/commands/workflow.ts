@@ -4,6 +4,7 @@ import { workflowRoot } from "../core/assets";
 import { cliVersion, readConfig, writeConfig } from "../core/config";
 import { copyTree, TemplateContext } from "../core/copier";
 import { log } from "../core/logger";
+import { FileHashes, hashFile, listFiles } from "../core/sync";
 
 const GITIGNORE_ENTRY = ".ai/sessions/";
 
@@ -47,8 +48,15 @@ export function installWorkflow(cwd: string, options: { overwrite?: boolean } = 
     log.info(`  既存のためスキップ: ${result.skipped.length}件（上書きは foundruu update --force）`);
   }
 
+  // 管理ファイルの導入時ハッシュを記録する(update 時のユーザー編集検出に使用)
+  const files: FileHashes = {};
+  for (const relPath of listFiles(workflowRoot())) {
+    const destPath = path.join(cwd, relPath);
+    if (fs.existsSync(destPath)) files[relPath] = hashFile(destPath);
+  }
+
   const config = readConfig(cwd) ?? { version: cliVersion() };
-  config.workflow = { version: cliVersion(), installedAt: new Date().toISOString() };
+  config.workflow = { version: cliVersion(), installedAt: new Date().toISOString(), files };
   writeConfig(cwd, config);
   log.success(`Workflow を導入しました（${result.written.length}ファイル）`);
 }

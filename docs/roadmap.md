@@ -19,10 +19,10 @@
 - [ ] docker-compose.yml の言語別分岐（現状 Node 前提）
 
 ## v0.3 — Update 強化
-- [ ] GitHub（degit）からの最新アセット取得
-- [ ] バージョン管理・差分表示（`foundruu update --diff`）
+- [x] GitHub からの最新アセット取得（git shallow clone + ~/.foundruu/cache、オフライン時は同梱へフォールバック）
+- [x] 差分表示（`foundruu update --diff`）
 - [ ] ファイル単位の選択適用 / 強制更新
-- [ ] ユーザー編集済みファイルの保護（ハッシュ比較）
+- [x] ユーザー編集済みファイルの保護（導入時 sha256 を foundruu.json に記録して比較）
 
 ## v0.4 — Doctor 強化
 - [ ] DevDoctor の diff ベース品質診断を統合（`foundruu doctor --deep`）

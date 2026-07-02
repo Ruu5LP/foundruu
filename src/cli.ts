@@ -58,10 +58,12 @@ program
 
 program
   .command("update")
-  .description("Workflow / Prompt / Rules を最新へ更新する")
-  .option("-f, --force", "既存ファイルも上書きする")
-  .action((opts: { force?: boolean }) => {
-    wrap(() => runUpdate(process.cwd(), opts));
+  .description("Workflow / Prompt / Rules を最新へ更新する（GitHub から取得、失敗時は同梱アセット）")
+  .option("-f, --force", "ユーザー編集済みファイルも上書きする")
+  .option("--diff", "差分の表示のみで書き込まない")
+  .option("--local", "GitHub から取得せず CLI 同梱アセットを使う")
+  .action(async (opts: { force?: boolean; diff?: boolean; local?: boolean }) => {
+    await wrap(() => runUpdate(process.cwd(), opts));
   });
 
 program
