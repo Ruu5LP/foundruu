@@ -1,0 +1,60 @@
+# CODEX.md
+
+このファイルは Codex がプロジェクトを理解するためのガイドです。
+
+---
+
+## プロジェクト概要
+
+**プロジェクト名:** {{projectName}}
+{{#if description}}**概要:** {{description}}{{/if}}
+
+- **言語:** {{languageLabel}}
+- **AI ツール:** {{#each aiProviderLabels}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
+
+### 機能一覧
+{{#each featureLabels}}
+- {{this}}
+{{/each}}
+
+---
+
+## 共通ルールの参照
+
+以下のドキュメントに従って作業してください：
+
+- [コーディング規約](../company/coding-standard.md)
+- [Git ワークフロー](../company/git-workflow.md)
+- [セキュリティガイドライン](../company/security.md)
+- [プロジェクト概要](../project/overview.md)
+- [プロジェクト規約](../project/conventions.md)
+- [テスト方針](../project/testing.md)
+
+---
+
+## 作業ルール
+
+### 変更単位
+- 小さい変更単位で作業すること（1 PR = 1 目的）
+- 大規模な変更（アーキテクチャ変更・大量ファイル変更）は事前にユーザーに確認すること
+
+### テスト
+- テストを壊さないこと
+- 新規機能には必ずテストを追加すること
+
+### 実装後チェック（必須）
+{{#if (hasFeature "eslint")}}
+- `npm run lint` でエラーがないこと
+{{/if}}
+{{#if (hasFeature "vitest")}}
+- `npm test` で全テストが通ること
+{{/if}}
+- `npm run typecheck` でエラーがないこと
+
+---
+
+## Codex 固有ルール
+
+- コードの意図が不明な場合は推測せず、コメントや構造から判断すること
+- 既存のコードスタイルに合わせること（独自スタイルを導入しない）
+- リファクタリングとバグ修正を同一 PR に混在させないこと

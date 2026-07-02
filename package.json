@@ -1,0 +1,48 @@
+{
+  "name": "foundruu",
+  "version": "0.1.0",
+  "description": "FoundRuu CLI - AI開発を標準化するためのプラットフォームCLI",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "foundruu": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "assets"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "ts-node src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "handlebars": "^4.7.8",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "scaffold",
+    "workflow",
+    "doctor",
+    "foundruu"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ruu5LP/RuunFoundry.git"
+  }
+}

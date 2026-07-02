@@ -1,0 +1,65 @@
+# CLAUDE.md
+
+このファイルは Claude Code がプロジェクトを理解するためのガイドです。
+
+---
+
+## プロジェクト概要
+
+**プロジェクト名:** {{projectName}}
+{{#if description}}**概要:** {{description}}{{/if}}
+
+- **言語:** {{languageLabel}}
+- **AI ツール:** {{#each aiProviderLabels}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
+
+### 機能一覧
+{{#each featureLabels}}
+- {{this}}
+{{/each}}
+
+---
+
+## 必ず最初に読むファイル
+
+作業開始前に以下を読んでください：
+
+1. [コーディング規約](../company/coding-standard.md)
+2. [Git ワークフロー](../company/git-workflow.md)
+3. [レビューポリシー](../company/review-policy.md)
+4. [セキュリティガイドライン](../company/security.md)
+5. [プロジェクト概要](../project/overview.md)
+6. [アーキテクチャ](../project/architecture.md)
+7. [プロジェクト規約](../project/conventions.md)
+8. [テスト方針](../project/testing.md)
+
+---
+
+## 作業ルール
+
+### 実装前
+- 実装前に設計・方針を簡潔に書いてから着手すること
+- 大きな変更はユーザーに確認してから実施すること
+
+### 実装中
+- 小さい単位で実装・確認を繰り返すこと
+- テストを壊さないこと
+
+### 実装後（必須チェックリスト）
+{{#if (hasFeature "eslint")}}
+- [ ] `npm run lint` を実行してエラーがないこと
+{{/if}}
+{{#if (hasFeature "vitest")}}
+- [ ] `npm test` を実行して全テストが通ること
+{{/if}}
+- [ ] `npm run typecheck` を実行してエラーがないこと
+- [ ] `README.md` を最新状態に更新すること
+- [ ] `docs/` 以下のドキュメントを必要に応じて更新すること
+
+---
+
+## Claude Code 固有ルール
+
+- ファイルを読む前に「何を確認するか」を宣言すること
+- 複数ファイルの変更時は影響範囲を事前にリストアップすること
+- 不明点はコードを推測せず、ユーザーに質問すること
+- セキュリティに関わる変更は必ずユーザーの確認を取ること

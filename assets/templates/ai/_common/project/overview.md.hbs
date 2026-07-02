@@ -1,0 +1,37 @@
+# プロジェクト概要
+
+## {{projectName}}
+
+{{#if description}}
+{{description}}
+{{else}}
+（プロジェクトの概要をここに記載してください）
+{{/if}}
+
+## 技術スタック
+
+- **言語:** {{languageLabel}}
+{{#if aiProviderLabels.length}}
+- **AI ツール:** {{#each aiProviderLabels}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
+{{/if}}
+
+## 機能一覧
+
+{{#each featureLabels}}
+- {{this}}
+{{/each}}
+
+## ディレクトリ構成
+
+```
+{{projectName}}/
+├── src/          # ソースコード
+├── tests/        # テストコード
+├── docs/         # ドキュメント
+├── .ai/          # AI ルール
+│   ├── company/  # 社内共通ルール
+│   ├── project/  # プロジェクト固有ルール
+{{#if (hasAi "claude")}}│   ├── claude/   # Claude Code ルール
+{{/if}}{{#if (hasAi "codex")}}│   └── codex/    # Codex ルール
+{{/if}}└── README.md
+```

@@ -1,0 +1,73 @@
+# {{projectName}}
+
+{{#if description}}
+{{description}}
+{{/if}}
+
+## Tech Stack
+
+- **Language:** {{languageLabel}}
+{{#if aiProviderLabels.length}}
+- **AI:** {{#each aiProviderLabels}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
+{{/if}}
+
+## Features
+
+{{#each featureLabels}}
+- {{this}}
+{{/each}}
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+```
+
+{{#if (hasFeature "docker")}}
+## Docker
+
+```bash
+docker-compose up -d
+```
+{{/if}}
+
+{{#if (hasFeature "vitest")}}
+## Testing
+
+```bash
+npm test
+npm run test:coverage
+```
+{{/if}}
+
+{{#if (hasFeature "eslint")}}
+## Linting
+
+```bash
+npm run lint
+```
+{{/if}}
+
+## AI Documentation
+
+AI-specific rules and guidelines are located in `.ai/`:
+
+```
+.ai/
+├── company/      # Company-wide coding standards
+├── project/      # Project-specific conventions
+{{#if (hasAi "claude")}}
+├── claude/       # Claude Code rules → CLAUDE.md (symlink at root)
+{{/if}}
+{{#if (hasAi "codex")}}
+└── codex/        # Codex rules → CODEX.md (symlink at root)
+{{/if}}
+```
+
+## License
+
+MIT © {{year}}
