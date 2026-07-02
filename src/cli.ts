@@ -8,6 +8,8 @@ import { startSession, listSessions } from "./commands/session";
 import { cliVersion } from "./core/config";
 import { log } from "./core/logger";
 import { templates } from "./registry/templates";
+import { loadPlugins } from "./core/plugins";
+import { checks } from "./doctor/checks";
 
 const program = new Command();
 
@@ -89,6 +91,27 @@ program
   .action(() => {
     for (const t of templates) {
       log.info(`  ${t.id.padEnd(16)} ${t.label}${t.status === "planned" ? "（準備中）" : ""}`);
+    }
+  });
+
+// プラグイン読み込み(コマンド・doctor チェックの拡張)
+const loadedPlugins = loadPlugins(process.cwd(), {
+  program,
+  addDoctorCheck: (check) => checks.push(check),
+  log,
+});
+
+program
+  .command("plugins")
+  .description("読み込まれているプラグインを一覧表示する")
+  .action(() => {
+    if (loadedPlugins.length === 0) {
+      log.info("プラグインは読み込まれていません。");
+      log.info("  node_modules の foundruu-plugin-* または foundruu.json の plugins で追加できます。");
+      return;
+    }
+    for (const p of loadedPlugins) {
+      log.info(`  ${p.name.padEnd(24)} ${p.source}`);
     }
   });
 

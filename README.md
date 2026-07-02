@@ -29,6 +29,7 @@ npm install && npm run build && npm link
 | `foundruu update [--force]` | Workflow / Prompt / Rules を最新へ更新 |
 | `foundruu session start <name>` / `session list` | AI開発セッションの作成 / 一覧 |
 | `foundruu templates` | 利用可能なテンプレート一覧 |
+| `foundruu plugins` | 読み込まれているプラグイン一覧 |
 | `foundruu --help` / `--version` | ヘルプ / バージョン |
 
 ## 利用フロー
@@ -85,6 +86,25 @@ Docker / GitHub Actions / AI Rules / Workflow / Prompt / foundruu.json
 
 `foundruu doctor --deep` は DevDoctor 由来の品質診断で、docs/（および最新の `.ai/sessions/`）の
 要件・設計・テスト・AI指示ドキュメントをスコア化し、不足観点と改善案を提示します。
+
+## プラグイン
+
+`foundruu-plugin-*` という名前の npm パッケージを入れる(または `foundruu.json` の `plugins` にパスを書く)と自動で読み込まれ、コマンドと doctor チェックを拡張できます:
+
+```js
+// foundruu-plugin-security/index.js
+module.exports = {
+  name: "security",
+  register({ program, addDoctorCheck, log }) {
+    addDoctorCheck({
+      id: "security-md", label: "SECURITY.md", category: "セキュリティ",
+      severity: "warn", hint: "SECURITY.md を追加してください",
+      check: (ctx) => ctx.exists("SECURITY.md"),
+    });
+    program.command("audit").action(() => log.success("audit 実行"));
+  },
+};
+```
 
 ## GitHub Actions として使う
 

@@ -37,6 +37,6 @@
 - [x] npm publish（[foundruu](https://www.npmjs.com/package/foundruu) v0.1.0、`npx foundruu` で利用可能）
 - [x] GitHub Actions（composite action `Ruu5LP/RuunFoundry@main`、fail-on / deep 対応）
 - [x] リポジトリ CI（typecheck / test / build / CLI スモークテスト / self-doctor）
-- [ ] Plugin システム（`foundruu-plugin-*` の自動ロード）
+- [x] Plugin システム（`foundruu-plugin-*` / foundruu.json plugins の自動ロード、コマンド・doctor チェック拡張）
 - [ ] MCP Server / VSCode Extension（core ロジックの共有）
 - [ ] Cloud 連携 / Marketplace
