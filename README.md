@@ -9,9 +9,13 @@ AI開発を標準化するためのプラットフォーム **FoundRuu** の CLI
 ## インストール
 
 ```bash
-npm install
-npm run build
-npm link   # foundruu コマンドとして使えるようにする
+npm install -g foundruu   # または npx foundruu <command>
+```
+
+ソースから使う場合:
+
+```bash
+npm install && npm run build && npm link
 ```
 
 ## コマンド

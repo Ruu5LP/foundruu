@@ -34,7 +34,7 @@
 - [x] `foundruu session start/list`（dev-workflow の ai-session を TS 移植、サブディレクトリからのルート探索対応）
 
 ## v1.0 — プラットフォーム化
-- [ ] npm publish（`npx foundruu`）
+- [x] npm publish（[foundruu](https://www.npmjs.com/package/foundruu) v0.1.0、`npx foundruu` で利用可能）
 - [x] GitHub Actions（composite action `Ruu5LP/RuunFoundry@main`、fail-on / deep 対応）
 - [x] リポジトリ CI（typecheck / test / build / CLI スモークテスト / self-doctor）
 - [ ] Plugin システム（`foundruu-plugin-*` の自動ロード）
