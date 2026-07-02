@@ -1,6 +1,6 @@
 {
   "name": "foundruu",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "FoundRuu CLI - AI開発を標準化するためのプラットフォームCLI",
   "license": "MIT",
   "type": "commonjs",
@@ -21,9 +21,11 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^7.10.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^12.1.0",
     "handlebars": "^4.7.8",
-    "picocolors": "^1.1.0"
+    "picocolors": "^1.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

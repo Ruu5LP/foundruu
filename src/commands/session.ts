@@ -72,16 +72,20 @@ export function startSession(cwd: string, name: string): void {
   log.info("  3. AI が「進める / 質問する」を判断します");
 }
 
-export function listSessions(cwd: string): void {
+/** 既存セッション名の一覧を返す(MCP からも利用) */
+export function sessionNames(cwd: string): string[] {
   const root = requireAiRoot(cwd);
   const sessionsDir = path.join(root, ".ai", "sessions");
-  const sessions = fs.existsSync(sessionsDir)
-    ? fs
-        .readdirSync(sessionsDir, { withFileTypes: true })
-        .filter((e) => e.isDirectory())
-        .map((e) => e.name)
-        .sort()
-    : [];
+  if (!fs.existsSync(sessionsDir)) return [];
+  return fs
+    .readdirSync(sessionsDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+    .sort();
+}
+
+export function listSessions(cwd: string): void {
+  const sessions = sessionNames(cwd);
 
   if (sessions.length === 0) {
     log.info("セッションはまだありません。");

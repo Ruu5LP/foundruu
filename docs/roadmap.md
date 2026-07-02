@@ -38,5 +38,6 @@
 - [x] GitHub Actions（composite action `Ruu5LP/RuunFoundry@main`、fail-on / deep 対応）
 - [x] リポジトリ CI（typecheck / test / build / CLI スモークテスト / self-doctor）
 - [x] Plugin システム（`foundruu-plugin-*` / foundruu.json plugins の自動ロード、コマンド・doctor チェック拡張）
-- [ ] MCP Server / VSCode Extension（core ロジックの共有）
+- [x] MCP Server（`foundruu mcp`、stdio で 6 ツール公開）
+- [ ] VSCode Extension（core ロジックの共有）
 - [ ] Cloud 連携 / Marketplace

@@ -30,6 +30,7 @@ npm install && npm run build && npm link
 | `foundruu session start <name>` / `session list` | AI開発セッションの作成 / 一覧 |
 | `foundruu templates` | 利用可能なテンプレート一覧 |
 | `foundruu plugins` | 読み込まれているプラグイン一覧 |
+| `foundruu mcp` | MCP サーバーを起動（AIエージェント連携） |
 | `foundruu --help` / `--version` | ヘルプ / バージョン |
 
 ## 利用フロー
@@ -86,6 +87,16 @@ Docker / GitHub Actions / AI Rules / Workflow / Prompt / foundruu.json
 
 `foundruu doctor --deep` は DevDoctor 由来の品質診断で、docs/（および最新の `.ai/sessions/`）の
 要件・設計・テスト・AI指示ドキュメントをスコア化し、不足観点と改善案を提示します。
+
+## MCP Server として使う
+
+Claude Code 等の MCP クライアントに登録すると、AIエージェントが doctor / session / workflow / update をツールとして直接呼べます:
+
+```bash
+claude mcp add foundruu -- npx foundruu mcp
+```
+
+公開ツール: `doctor` / `doctor_deep` / `session_start` / `session_list` / `workflow_install` / `update`
 
 ## プラグイン
 

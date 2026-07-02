@@ -1,9 +1,15 @@
 import pc from "picocolors";
 
+let out: (msg: string) => void = (msg) => console.log(msg);
+
 export const log = {
-  info: (msg: string): void => console.log(msg),
-  step: (msg: string): void => console.log(pc.cyan(`▸ ${msg}`)),
-  success: (msg: string): void => console.log(pc.green(`✔ ${msg}`)),
-  warn: (msg: string): void => console.log(pc.yellow(`⚠ ${msg}`)),
+  info: (msg: string): void => out(msg),
+  step: (msg: string): void => out(pc.cyan(`▸ ${msg}`)),
+  success: (msg: string): void => out(pc.green(`✔ ${msg}`)),
+  warn: (msg: string): void => out(pc.yellow(`⚠ ${msg}`)),
   error: (msg: string): void => console.error(pc.red(`✖ ${msg}`)),
+  /** MCP(stdio) 等、stdout をプロトコルに使うモードでログを stderr へ逃がす */
+  useStderr: (): void => {
+    out = (msg) => console.error(msg);
+  },
 };

@@ -71,6 +71,14 @@ program
     await wrap(() => runUpdate(process.cwd(), opts));
   });
 
+program
+  .command("mcp")
+  .description("MCP サーバーを起動する(AIエージェントから doctor / session 等をツールとして利用)")
+  .action(async () => {
+    const { runMcpServer } = await import("./commands/mcp");
+    await wrap(() => runMcpServer(process.cwd()));
+  });
+
 const session = program.command("session").description("AI開発セッションを管理する");
 session
   .command("start <name>")
