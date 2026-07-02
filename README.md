@@ -23,6 +23,7 @@ npm link   # foundruu コマンドとして使えるようにする
 | `foundruu doctor [--json]` | リポジトリがAI開発可能な状態か診断（fail ありで exit 1） |
 | `foundruu doctor --deep [--since <ref>]` | docs/ と git 差分から AI開発プロセス品質をスコア診断 |
 | `foundruu update [--force]` | Workflow / Prompt / Rules を最新へ更新 |
+| `foundruu session start <name>` / `session list` | AI開発セッションの作成 / 一覧 |
 | `foundruu templates` | 利用可能なテンプレート一覧 |
 | `foundruu --help` / `--version` | ヘルプ / バージョン |
 
@@ -36,7 +37,8 @@ foundruu init --template typescript --name my-app
 # ② 既存リポジトリには Workflow だけ導入
 foundruu workflow install
 
-# ③ AIエージェント(Claude Code / Codex)に .ai/ を読ませて開発
+# ③ セッションを作成し、AIエージェントに .ai/ を読ませて開発
+foundruu session start add-login-api
 
 # ④ いつでも健全性チェック
 foundruu doctor

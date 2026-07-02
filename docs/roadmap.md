@@ -31,7 +31,7 @@
 - [x] `.foundruurc` によるチェックのカスタマイズ（無効化・severity 変更）
 
 ## v0.5 — セッション管理
-- [ ] `foundruu session start/list`（dev-workflow の ai-session を TS 移植）
+- [x] `foundruu session start/list`（dev-workflow の ai-session を TS 移植、サブディレクトリからのルート探索対応）
 
 ## v1.0 — プラットフォーム化
 - [ ] npm publish（`npx foundruu`）

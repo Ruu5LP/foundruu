@@ -4,6 +4,7 @@ import { runInit } from "./commands/init";
 import { installWorkflow } from "./commands/workflow";
 import { runDoctorCommand } from "./commands/doctor";
 import { runUpdate } from "./commands/update";
+import { startSession, listSessions } from "./commands/session";
 import { cliVersion } from "./core/config";
 import { log } from "./core/logger";
 import { templates } from "./registry/templates";
@@ -66,6 +67,20 @@ program
   .option("--local", "GitHub から取得せず CLI 同梱アセットを使う")
   .action(async (opts: { force?: boolean; diff?: boolean; local?: boolean }) => {
     await wrap(() => runUpdate(process.cwd(), opts));
+  });
+
+const session = program.command("session").description("AI開発セッションを管理する");
+session
+  .command("start <name>")
+  .description("セッション作業ファイル一式を .ai/sessions/<name>/ に作成する")
+  .action(async (name: string) => {
+    await wrap(() => startSession(process.cwd(), name));
+  });
+session
+  .command("list")
+  .description("既存セッションを一覧表示する")
+  .action(async () => {
+    await wrap(() => listSessions(process.cwd()));
   });
 
 program
