@@ -49,3 +49,35 @@ jobs:
       - run: cp .env.example .env && php artisan key:generate
       - run: php artisan test
 {{/eq}}
+
+{{#eq language "nextjs"}}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+{{#if (hasFeature "eslint")}}
+      - run: npm run lint
+{{/if}}
+{{#if (hasFeature "vitest")}}
+      - run: npm test
+{{/if}}
+      - run: npm run build
+{{/eq}}
+
+{{#eq language "nuxt"}}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+{{#if (hasFeature "eslint")}}
+      - run: npm run lint
+{{/if}}
+{{#if (hasFeature "vitest")}}
+      - run: npm test
+{{/if}}
+      - run: npm run build
+{{/eq}}
