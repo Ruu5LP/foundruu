@@ -5,10 +5,10 @@ import path from "path";
 import { workflowRoot } from "./assets";
 import { log } from "./logger";
 
-const ASSETS_REPO = "https://github.com/Ruu5LP/RuunFoundry.git";
+const ASSETS_REPO = "https://github.com/Ruu5LP/foundruu.git";
 
 function cacheDir(): string {
-  return path.join(os.homedir(), ".foundruu", "cache", "RuunFoundry");
+  return path.join(os.homedir(), ".foundruu", "cache", "foundruu");
 }
 
 /**

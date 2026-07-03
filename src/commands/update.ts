@@ -36,7 +36,7 @@ export function runUpdate(cwd: string, options: UpdateOptions): void {
 
   const { root, source } = fetchWorkflowAssets({ local: options.local });
   log.info(
-    `アセット取得元: ${source === "remote" ? "GitHub (Ruu5LP/RuunFoundry)" : "CLI 同梱"} / 導入済みバージョン: ${config.workflow.version}`
+    `アセット取得元: ${source === "remote" ? "GitHub (Ruu5LP/foundruu)" : "CLI 同梱"} / 導入済みバージョン: ${config.workflow.version}`
   );
 
   const recorded = config.workflow.files ?? {};

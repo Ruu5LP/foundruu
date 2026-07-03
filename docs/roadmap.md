@@ -35,7 +35,7 @@
 
 ## v1.0 — プラットフォーム化
 - [x] npm publish（[foundruu](https://www.npmjs.com/package/foundruu) v0.1.0、`npx foundruu` で利用可能）
-- [x] GitHub Actions（composite action `Ruu5LP/RuunFoundry@main`、fail-on / deep 対応）
+- [x] GitHub Actions（composite action `Ruu5LP/foundruu@main`、fail-on / deep 対応）
 - [x] リポジトリ CI（typecheck / test / build / CLI スモークテスト / self-doctor）
 - [x] Plugin システム（`foundruu-plugin-*` / foundruu.json plugins の自動ロード、コマンド・doctor チェック拡張）
 - [x] MCP Server（`foundruu mcp`、stdio で 6 ツール公開）

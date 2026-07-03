@@ -14,7 +14,7 @@ foundruu update            同梱アセットを最新へ再配置
 ## ディレクトリ構成
 
 ```
-RuunFoundry/
+foundruu/
 ├── src/
 │   ├── cli.ts                 # エントリポイント (commander)
 │   ├── commands/              # 1コマンド = 1ファイル

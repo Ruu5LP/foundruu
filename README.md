@@ -127,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ruu5LP/RuunFoundry@main
+      - uses: Ruu5LP/foundruu@main
         with:
           fail-on: error   # error / warning / never
           deep: 'true'     # --deep のスコア診断も実行
