@@ -96,6 +96,18 @@ session
     await wrap(() => listSessions(process.cwd()));
   });
 
+const cloud = program.command("cloud").description("FoundRuu Cloud(レポート集約)と連携する");
+cloud
+  .command("push")
+  .description("最新の deep レポートを Cloud リポジトリへ送信する")
+  .option("--dir <dir>", "レポートのディレクトリ", "reports")
+  .option("--repo <owner/repo>", "送信先リポジトリ(デフォルト: foundruu.json の cloud.repo)")
+  .option("--project <name>", "プロジェクト名(デフォルト: foundruu.json の projectName)")
+  .action(async (opts: { dir?: string; repo?: string; project?: string }) => {
+    const { runCloudPush } = await import("./commands/cloud.js");
+    await wrap(() => runCloudPush(process.cwd(), opts));
+  });
+
 program
   .command("dashboard")
   .description("doctor --deep のレポート履歴からスコア推移ダッシュボード(HTML)を生成する")

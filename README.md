@@ -32,6 +32,7 @@ npm install && npm run build && npm link
 | `foundruu plugins` | 読み込まれているプラグイン一覧 |
 | `foundruu mcp` | MCP サーバーを起動（AIエージェント連携） |
 | `foundruu dashboard [--dir reports]` | deep レポート履歴からスコア推移ダッシュボードを生成 |
+| `foundruu cloud push` | 最新の deep レポートを [foundruu-cloud](https://github.com/Ruu5LP/foundruu-cloud) へ送信 |
 | `foundruu --help` / `--version` | ヘルプ / バージョン |
 
 ## 利用フロー
@@ -129,6 +130,18 @@ module.exports = {
 ```bash
 foundruu dashboard          # reports/index.html を生成
 ```
+
+## Cloud（レポート集約）
+
+複数プロジェクトのレポートを [foundruu-cloud](https://github.com/Ruu5LP/foundruu-cloud) に集約し、
+[公開ダッシュボード](https://ruu5lp.github.io/foundruu-cloud/)で俯瞰できます:
+
+```bash
+foundruu doctor --deep --report reports
+foundruu cloud push    # 認証は gh auth token / GH_TOKEN
+```
+
+設計は [docs/cloud.md](docs/cloud.md) を参照。
 
 ## GitHub Actions として使う
 

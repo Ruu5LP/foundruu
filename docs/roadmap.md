@@ -43,4 +43,4 @@
 - [x] Marketplace の入口（公式プラグイン foundruu-plugin-security を npm 公開）
 - [x] スコア推移ダッシュボード（`foundruu dashboard`）
 - [x] 旧3リポジトリのアーカイブと誘導 / GitHub Release 自動化 / テンプレート実ビルド週次検証
-- [ ] Cloud 連携（レポート収集サービス）
+- [x] Cloud 連携（`foundruu cloud push` + foundruu-cloud リポジトリ + GitHub Pages ダッシュボード）
