@@ -2,7 +2,8 @@
   "scripts": {
     "dev:web": "vite",
     "build:web": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build": "tsc --noEmit && vite build"
   },
   "dependencies": {
     "react": "^19.2.0",
