@@ -1,0 +1,68 @@
+name: Template Verify
+
+# テンプレートが「生成できる」だけでなく「実際にビルドできる」ことを検証する。
+# 依存を常に最新へ保つ方針のため、上流の破壊的変更を週次で検知する。
+on:
+  schedule:
+    - cron: '0 21 * * 0'   # 毎週月曜 6:00 JST
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/templates/**'
+      - 'src/registry/**'
+
+jobs:
+  node-templates:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [typescript, node-react, nextjs, nuxt]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Build CLI
+        run: npm ci && npm run build && npm link
+      - name: Generate project
+        run: |
+          mkdir -p /tmp/verify && cd /tmp/verify
+          git init -q -b main
+          foundruu init --template ${{ matrix.template }} --name verify-app --yes
+      - name: Install & build generated project
+        working-directory: /tmp/verify
+        run: |
+          npm install
+          npm run build --if-present
+          npm run typecheck --if-present
+
+  laravel-templates:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [laravel-react, laravel-vue]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+      - name: Build CLI
+        run: npm ci && npm run build && npm link
+      - name: Generate project
+        run: |
+          mkdir -p /tmp/verify && cd /tmp/verify
+          git init -q -b main
+          foundruu init --template ${{ matrix.template }} --name verify-app --yes
+      - name: Validate composer.json / build frontend
+        working-directory: /tmp/verify
+        run: |
+          composer validate --no-check-publish --no-check-lock
+          npm install
+          # laravel-vite-plugin は Laravel スケルトン前提のため、フロントの依存解決まで検証する
+          npx vite --version
