@@ -22,11 +22,11 @@ npm install && npm run build && npm link
 
 | コマンド | 説明 |
 |---|---|
-| `foundruu init [--template <id>] [--name <name>]` | テンプレート + Workflow + Rules + Doctor設定を一括導入 |
+| `foundruu init [--template <id>] [--features <list>]` | テンプレート + Workflow + Rules + Doctor設定を一括導入 |
 | `foundruu workflow install` | Workflow / Prompt / Rules（`.ai/`）のみを既存リポジトリへ導入 |
 | `foundruu doctor [--json]` | リポジトリがAI開発可能な状態か診断（fail ありで exit 1） |
-| `foundruu doctor --deep [--since <ref>]` | docs/ と git 差分から AI開発プロセス品質をスコア診断 |
-| `foundruu update [--force]` | Workflow / Prompt / Rules を最新へ更新 |
+| `foundruu doctor --deep [--since <ref>] [--report <dir>]` | AI開発プロセス品質をスコア診断（md/html/json レポート出力可） |
+| `foundruu update [--force] [--diff] [--only <paths...>]` | Workflow / Prompt / Rules を最新へ更新（パス指定・差分確認可） |
 | `foundruu session start <name>` / `session list` | AI開発セッションの作成 / 一覧 |
 | `foundruu templates` | 利用可能なテンプレート一覧 |
 | `foundruu plugins` | 読み込まれているプラグイン一覧 |
@@ -38,7 +38,7 @@ npm install && npm run build && npm link
 ```bash
 # ① 新しいリポジトリにAI開発環境を構築
 mkdir my-app && cd my-app && git init
-foundruu init --template typescript --name my-app
+foundruu init --template typescript --name my-app --features docker,vitest
 
 # ② 既存リポジトリには Workflow だけ導入
 foundruu workflow install
@@ -134,6 +134,11 @@ jobs:
 ```
 
 結果はジョブサマリに表形式で出力されます。
+
+## VSCode Extension
+
+[vscode-extension/](vscode-extension/) にコマンドパレット連携の拡張があります（Doctor / セッション作成 / Workflow 導入・更新）。
+`npx @vscode/vsce package` で .vsix を生成してインストールできます。
 
 ## 開発
 
