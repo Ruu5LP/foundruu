@@ -1,5 +1,6 @@
 dist
 action
+coverage
 node_modules
 assets
 plugins

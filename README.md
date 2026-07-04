@@ -177,12 +177,14 @@ npm install や TypeScript ビルドは走りません(`node` で即実行)。`@
 ```bash
 npm run dev -- doctor   # ts-node で実行
 npm test                # vitest
+npm run test:coverage   # カバレッジ計測（coverage/ に HTML/lcov 出力）
 npm run typecheck
 npm run lint            # ESLint（--fix で自動修正）
 npm run format          # Prettier で整形（format:check は差分チェックのみ）
 ```
 
-lint / format:check / typecheck / test / build は CI（[.github/workflows/ci.yml](.github/workflows/ci.yml)）でも実行されます。
+lint / format:check / typecheck / test:coverage / build は CI（[.github/workflows/ci.yml](.github/workflows/ci.yml)）でも実行されます。
+カバレッジは回帰防止の下限しきい値を設定しており（[vitest.config.ts](vitest.config.ts)）、下回ると CI が失敗します。
 
 ## ドキュメント
 
