@@ -127,6 +127,7 @@ module.exports = {
 ### 公式プラグイン
 
 - [foundruu-plugin-security](plugins/foundruu-plugin-security/) — SECURITY.md / .env の gitignore / 依存更新自動化のチェックを追加（`npm i -D foundruu-plugin-security`）。自作プラグインの参考実装でもあります
+- [foundruu-plugin-node](plugins/foundruu-plugin-node/) — Node バージョン固定 / ロックファイル / node_modules の gitignore のチェックを追加（`npm i -D foundruu-plugin-node`）
 
 ## ダッシュボード
 
@@ -195,6 +196,7 @@ lint / format:check / typecheck / test:coverage / build は CI（[.github/workfl
 - [docs/roadmap.md](docs/roadmap.md) — MVP以降のロードマップ
 - [docs/PLUGIN_DEV.md](docs/PLUGIN_DEV.md) — プラグイン開発ガイド
 - [docs/cloud.md](docs/cloud.md) — Cloud(レポート集約)の設計
+- [CHANGELOG.md](CHANGELOG.md) — 変更履歴
 
 ## ライセンス
 
