@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-07-05
+
 ### Changed
 
 - `doctor --deep`: ドキュメント検出パターンを拡張。`architecture.md`→設計、`spec.md`/`prd.md`→要件、`AGENTS.md`/`CODEX.md`→AI指示、`テスト.md` など、決まったファイル名以外の一般的な別名も拾えるようにした
@@ -102,7 +104,8 @@
 
 - 初回リリース。`init` / `workflow` / `doctor` / `session` / `templates` と npm 公開
 
-[Unreleased]: https://github.com/Ruu5LP/foundruu/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/Ruu5LP/foundruu/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/Ruu5LP/foundruu/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/Ruu5LP/foundruu/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/Ruu5LP/foundruu/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/Ruu5LP/foundruu/compare/v0.7.1...v0.8.0
