@@ -9,6 +9,7 @@
 ### Added
 
 - `foundruu doctor --fix` — README / LICENSE / .gitignore / .env.example の欠如を最小構成で自動生成する（既存ファイルは上書きしない）
+- セッションのライフサイクル: `session show` / `session end` / `session current`。`session start` が「現在のセッション」を設定し、`end` で完了を記録する（メタ情報はセッションディレクトリ外に保存）
 
 ## [0.8.0] - 2026-07-05
 

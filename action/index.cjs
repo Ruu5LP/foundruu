@@ -6910,6 +6910,43 @@ function requireAiRoot(cwd) {
   }
   return root;
 }
+function readCurrent(root) {
+  const file2 = currentFile(root);
+  if (!import_fs13.default.existsSync(file2)) return null;
+  return import_fs13.default.readFileSync(file2, "utf8").trim() || null;
+}
+function setCurrent(root, name) {
+  import_fs13.default.mkdirSync(sessionsRoot(root), { recursive: true });
+  import_fs13.default.writeFileSync(currentFile(root), `${name}
+`);
+}
+function clearCurrent(root) {
+  const file2 = currentFile(root);
+  if (import_fs13.default.existsSync(file2)) import_fs13.default.rmSync(file2);
+}
+function readStatus(root, name) {
+  const file2 = statusFile(root, name);
+  if (!import_fs13.default.existsSync(file2)) return null;
+  try {
+    return JSON.parse(import_fs13.default.readFileSync(file2, "utf8"));
+  } catch {
+    return null;
+  }
+}
+function writeStatus(root, name, status) {
+  import_fs13.default.mkdirSync(import_path13.default.dirname(statusFile(root, name)), { recursive: true });
+  import_fs13.default.writeFileSync(statusFile(root, name), JSON.stringify(status, null, 2) + "\n");
+}
+function resolveSession(root, name, action) {
+  const target = name ?? readCurrent(root);
+  if (!target) {
+    throw new Error(`${action}\u3059\u308B\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u304C\u3042\u308A\u307E\u305B\u3093\uFF09\u3002`);
+  }
+  if (!import_fs13.default.existsSync(sessionDir(root, target))) {
+    throw new Error(`\u30BB\u30C3\u30B7\u30E7\u30F3\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: ${target}`);
+  }
+  return target;
+}
 function startSession(cwd, name) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name)) {
     throw new Error(`\u30BB\u30C3\u30B7\u30E7\u30F3\u540D\u304C\u4E0D\u6B63\u3067\u3059(\u82F1\u6570\u5B57\u3067\u59CB\u307E\u308A / \u3084\u7A7A\u767D\u3092\u542B\u307E\u306A\u3044\u3053\u3068): ${name}`);
@@ -6928,7 +6965,9 @@ function startSession(cwd, name) {
   for (const file2 of files) {
     import_fs13.default.copyFileSync(import_path13.default.join(templateDir, file2), import_path13.default.join(dest, file2));
   }
-  log.success(`\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u4F5C\u6210\u3057\u307E\u3057\u305F: .ai/sessions/${name}`);
+  writeStatus(root, name, { startedAt: (/* @__PURE__ */ new Date()).toISOString() });
+  setCurrent(root, name);
+  log.success(`\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u4F5C\u6210\u3057\u307E\u3057\u305F: .ai/sessions/${name}\uFF08\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\uFF09`);
   log.info("");
   log.info("\u4F5C\u6210\u30D5\u30A1\u30A4\u30EB:");
   for (const file2 of files.sort()) {
@@ -6940,11 +6979,50 @@ function startSession(cwd, name) {
   log.info("  2. AI \u306B .ai/prompts/session-workflow.md \u3068 requirements.md \u3092\u6E21\u3059");
   log.info("  3. AI \u304C\u300C\u9032\u3081\u308B / \u8CEA\u554F\u3059\u308B\u300D\u3092\u5224\u65AD\u3057\u307E\u3059");
 }
+function endSession(cwd, name) {
+  const root = requireAiRoot(cwd);
+  const target = resolveSession(root, name, "\u7D42\u4E86");
+  const status = readStatus(root, target) ?? { startedAt: (/* @__PURE__ */ new Date()).toISOString() };
+  if (status.endedAt) {
+    log.info(`\u30BB\u30C3\u30B7\u30E7\u30F3 ${target} \u306F\u65E2\u306B\u7D42\u4E86\u3057\u3066\u3044\u307E\u3059\uFF08${status.endedAt}\uFF09\u3002`);
+    return;
+  }
+  status.endedAt = (/* @__PURE__ */ new Date()).toISOString();
+  writeStatus(root, target, status);
+  if (readCurrent(root) === target) clearCurrent(root);
+  log.success(`\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u7D42\u4E86\u3057\u307E\u3057\u305F: ${target}`);
+}
+function showSession(cwd, name) {
+  const root = requireAiRoot(cwd);
+  const target = resolveSession(root, name, "\u8868\u793A");
+  const status = readStatus(root, target);
+  const state = status?.endedAt ? "\u5B8C\u4E86" : "\u9032\u884C\u4E2D";
+  const current = readCurrent(root) === target ? "\uFF08\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\uFF09" : "";
+  log.info(`\u30BB\u30C3\u30B7\u30E7\u30F3: ${target}\uFF08${state}\uFF09${current}`);
+  if (status?.startedAt) log.info(`  \u958B\u59CB: ${status.startedAt}`);
+  if (status?.endedAt) log.info(`  \u7D42\u4E86: ${status.endedAt}`);
+  log.info("  \u30D5\u30A1\u30A4\u30EB:");
+  const files = import_fs13.default.readdirSync(sessionDir(root, target)).filter((f) => f.endsWith(".md")).sort();
+  for (const file2 of files) {
+    const empty = import_fs13.default.readFileSync(import_path13.default.join(sessionDir(root, target), file2), "utf8").trim() === "";
+    log.info(`    - ${file2}${empty ? "\uFF08\u672A\u8A18\u5165\uFF09" : ""}`);
+  }
+}
+function currentSession(cwd) {
+  const root = requireAiRoot(cwd);
+  const current = readCurrent(root);
+  if (!current) {
+    log.info("\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002");
+    log.info("  \u4F5C\u6210: foundruu session start <session-name>");
+    return;
+  }
+  log.info(`\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3: ${current}`);
+}
 function sessionNames(cwd) {
   const root = requireAiRoot(cwd);
   const sessionsDir = import_path13.default.join(root, ".ai", "sessions");
   if (!import_fs13.default.existsSync(sessionsDir)) return [];
-  return import_fs13.default.readdirSync(sessionsDir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
+  return import_fs13.default.readdirSync(sessionsDir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith(".")).map((e) => e.name).sort();
 }
 function listSessions(cwd) {
   const sessions = sessionNames(cwd);
@@ -6953,12 +7031,17 @@ function listSessions(cwd) {
     log.info("  \u4F5C\u6210: foundruu session start <session-name>");
     return;
   }
+  const root = requireAiRoot(cwd);
+  const current = readCurrent(root);
   log.info("\u30BB\u30C3\u30B7\u30E7\u30F3\u4E00\u89A7 (.ai/sessions/):");
   for (const name of sessions) {
-    log.info(`  - ${name}`);
+    const state = readStatus(root, name)?.endedAt ? "\u5B8C\u4E86" : "\u9032\u884C\u4E2D";
+    const marker = name === current ? " *" : "";
+    log.info(`  - ${name}\uFF08${state}\uFF09${marker}`);
   }
+  if (current) log.info("\n  * = \u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3");
 }
-var import_child_process3, import_fs13, import_path13;
+var import_child_process3, import_fs13, import_path13, sessionsRoot, currentFile, statusFile, sessionDir;
 var init_session = __esm({
   "src/commands/session.ts"() {
     "use strict";
@@ -6966,6 +7049,10 @@ var init_session = __esm({
     import_fs13 = __toESM(require("fs"));
     import_path13 = __toESM(require("path"));
     init_logger();
+    sessionsRoot = (root) => import_path13.default.join(root, ".ai", "sessions");
+    currentFile = (root) => import_path13.default.join(sessionsRoot(root), ".current");
+    statusFile = (root, name) => import_path13.default.join(sessionsRoot(root), ".status", `${name}.json`);
+    sessionDir = (root, name) => import_path13.default.join(sessionsRoot(root), name);
   }
 });
 
@@ -43067,6 +43154,15 @@ session.command("start <name>").description("\u30BB\u30C3\u30B7\u30E7\u30F3\u4F5
 });
 session.command("list").description("\u65E2\u5B58\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u4E00\u89A7\u8868\u793A\u3059\u308B").action(async () => {
   await wrap(() => listSessions(process.cwd()));
+});
+session.command("show [name]").description("\u30BB\u30C3\u30B7\u30E7\u30F3\u306E\u72B6\u614B\u3068\u30D5\u30A1\u30A4\u30EB\u3092\u8868\u793A\u3059\u308B\uFF08name \u7701\u7565\u3067\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\uFF09").action(async (name) => {
+  await wrap(() => showSession(process.cwd(), name));
+});
+session.command("end [name]").description("\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u5B8C\u4E86\u3068\u3057\u3066\u8A18\u9332\u3059\u308B\uFF08name \u7701\u7565\u3067\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\uFF09").action(async (name) => {
+  await wrap(() => endSession(process.cwd(), name));
+});
+session.command("current").description("\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u8868\u793A\u3059\u308B").action(async () => {
+  await wrap(() => currentSession(process.cwd()));
 });
 var cloud = program2.command("cloud").description("FoundRuu Cloud(\u30EC\u30DD\u30FC\u30C8\u96C6\u7D04)\u3068\u9023\u643A\u3059\u308B");
 cloud.command("push").description("\u6700\u65B0\u306E deep \u30EC\u30DD\u30FC\u30C8\u3092 Cloud \u30EA\u30DD\u30B8\u30C8\u30EA\u3078\u9001\u4FE1\u3059\u308B").option("--dir <dir>", "\u30EC\u30DD\u30FC\u30C8\u306E\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA", "reports").option("--repo <owner/repo>", "\u9001\u4FE1\u5148\u30EA\u30DD\u30B8\u30C8\u30EA(\u30C7\u30D5\u30A9\u30EB\u30C8: foundruu.json \u306E cloud.repo)").option("--project <name>", "\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u540D(\u30C7\u30D5\u30A9\u30EB\u30C8: foundruu.json \u306E projectName)").action(async (opts) => {

@@ -37,6 +37,64 @@ function requireAiRoot(cwd: string): string {
   return root;
 }
 
+// セッションのメタ情報はセッションディレクトリの外に置き、作業ファイルを汚さない。
+//   .ai/sessions/.current            … 現在のセッション名
+//   .ai/sessions/.status/<name>.json … 各セッションの開始/終了時刻
+interface SessionStatus {
+  startedAt: string;
+  endedAt?: string;
+}
+
+const sessionsRoot = (root: string): string => path.join(root, ".ai", "sessions");
+const currentFile = (root: string): string => path.join(sessionsRoot(root), ".current");
+const statusFile = (root: string, name: string): string =>
+  path.join(sessionsRoot(root), ".status", `${name}.json`);
+
+function readCurrent(root: string): string | null {
+  const file = currentFile(root);
+  if (!fs.existsSync(file)) return null;
+  return fs.readFileSync(file, "utf8").trim() || null;
+}
+
+function setCurrent(root: string, name: string): void {
+  fs.mkdirSync(sessionsRoot(root), { recursive: true });
+  fs.writeFileSync(currentFile(root), `${name}\n`);
+}
+
+function clearCurrent(root: string): void {
+  const file = currentFile(root);
+  if (fs.existsSync(file)) fs.rmSync(file);
+}
+
+function readStatus(root: string, name: string): SessionStatus | null {
+  const file = statusFile(root, name);
+  if (!fs.existsSync(file)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8")) as SessionStatus;
+  } catch {
+    return null;
+  }
+}
+
+function writeStatus(root: string, name: string, status: SessionStatus): void {
+  fs.mkdirSync(path.dirname(statusFile(root, name)), { recursive: true });
+  fs.writeFileSync(statusFile(root, name), JSON.stringify(status, null, 2) + "\n");
+}
+
+const sessionDir = (root: string, name: string): string => path.join(sessionsRoot(root), name);
+
+/** name 省略時は現在のセッションを使う。どちらも無ければエラー */
+function resolveSession(root: string, name: string | undefined, action: string): string {
+  const target = name ?? readCurrent(root);
+  if (!target) {
+    throw new Error(`${action}するセッションを指定してください（現在のセッションがありません）。`);
+  }
+  if (!fs.existsSync(sessionDir(root, target))) {
+    throw new Error(`セッションが見つかりません: ${target}`);
+  }
+  return target;
+}
+
 export function startSession(cwd: string, name: string): void {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name)) {
     throw new Error(`セッション名が不正です(英数字で始まり / や空白を含まないこと): ${name}`);
@@ -59,7 +117,10 @@ export function startSession(cwd: string, name: string): void {
     fs.copyFileSync(path.join(templateDir, file), path.join(dest, file));
   }
 
-  log.success(`セッションを作成しました: .ai/sessions/${name}`);
+  writeStatus(root, name, { startedAt: new Date().toISOString() });
+  setCurrent(root, name);
+
+  log.success(`セッションを作成しました: .ai/sessions/${name}（現在のセッション）`);
   log.info("");
   log.info("作成ファイル:");
   for (const file of files.sort()) {
@@ -72,14 +133,63 @@ export function startSession(cwd: string, name: string): void {
   log.info("  3. AI が「進める / 質問する」を判断します");
 }
 
-/** 既存セッション名の一覧を返す(MCP からも利用) */
+/** セッションを完了として記録する。name 省略時は現在のセッション */
+export function endSession(cwd: string, name?: string): void {
+  const root = requireAiRoot(cwd);
+  const target = resolveSession(root, name, "終了");
+  const status = readStatus(root, target) ?? { startedAt: new Date().toISOString() };
+  if (status.endedAt) {
+    log.info(`セッション ${target} は既に終了しています（${status.endedAt}）。`);
+    return;
+  }
+  status.endedAt = new Date().toISOString();
+  writeStatus(root, target, status);
+  if (readCurrent(root) === target) clearCurrent(root);
+  log.success(`セッションを終了しました: ${target}`);
+}
+
+/** セッションの状態と作業ファイルを表示する。name 省略時は現在のセッション */
+export function showSession(cwd: string, name?: string): void {
+  const root = requireAiRoot(cwd);
+  const target = resolveSession(root, name, "表示");
+  const status = readStatus(root, target);
+  const state = status?.endedAt ? "完了" : "進行中";
+  const current = readCurrent(root) === target ? "（現在のセッション）" : "";
+
+  log.info(`セッション: ${target}（${state}）${current}`);
+  if (status?.startedAt) log.info(`  開始: ${status.startedAt}`);
+  if (status?.endedAt) log.info(`  終了: ${status.endedAt}`);
+  log.info("  ファイル:");
+  const files = fs
+    .readdirSync(sessionDir(root, target))
+    .filter((f) => f.endsWith(".md"))
+    .sort();
+  for (const file of files) {
+    const empty = fs.readFileSync(path.join(sessionDir(root, target), file), "utf8").trim() === "";
+    log.info(`    - ${file}${empty ? "（未記入）" : ""}`);
+  }
+}
+
+/** 現在のセッションを表示する */
+export function currentSession(cwd: string): void {
+  const root = requireAiRoot(cwd);
+  const current = readCurrent(root);
+  if (!current) {
+    log.info("現在のセッションはありません。");
+    log.info("  作成: foundruu session start <session-name>");
+    return;
+  }
+  log.info(`現在のセッション: ${current}`);
+}
+
+/** 既存セッション名の一覧を返す(MCP からも利用)。.current / .status 等は除外 */
 export function sessionNames(cwd: string): string[] {
   const root = requireAiRoot(cwd);
   const sessionsDir = path.join(root, ".ai", "sessions");
   if (!fs.existsSync(sessionsDir)) return [];
   return fs
     .readdirSync(sessionsDir, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
+    .filter((e) => e.isDirectory() && !e.name.startsWith("."))
     .map((e) => e.name)
     .sort();
 }
@@ -93,8 +203,13 @@ export function listSessions(cwd: string): void {
     return;
   }
 
+  const root = requireAiRoot(cwd);
+  const current = readCurrent(root);
   log.info("セッション一覧 (.ai/sessions/):");
   for (const name of sessions) {
-    log.info(`  - ${name}`);
+    const state = readStatus(root, name)?.endedAt ? "完了" : "進行中";
+    const marker = name === current ? " *" : "";
+    log.info(`  - ${name}（${state}）${marker}`);
   }
+  if (current) log.info("\n  * = 現在のセッション");
 }

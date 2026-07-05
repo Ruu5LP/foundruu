@@ -1,8 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { findAiRoot, startSession } from "../src/commands/session";
+import {
+  findAiRoot,
+  startSession,
+  endSession,
+  showSession,
+  currentSession,
+  sessionNames,
+} from "../src/commands/session";
+import { log } from "../src/core/logger";
 
 let tmp: string;
 
@@ -54,5 +62,74 @@ describe("startSession", () => {
     expect(() => startSession(tmp, "../evil")).toThrow(/不正/);
     expect(() => startSession(tmp, "a b")).toThrow(/不正/);
     expect(() => startSession(tmp, ".hidden")).toThrow(/不正/);
+  });
+
+  it("作成時に現在のセッションと開始時刻を記録する（メタはセッション外）", () => {
+    startSession(tmp, "s1");
+    expect(fs.readFileSync(path.join(tmp, ".ai/sessions/.current"), "utf8").trim()).toBe("s1");
+    const status = JSON.parse(
+      fs.readFileSync(path.join(tmp, ".ai/sessions/.status/s1.json"), "utf8")
+    );
+    expect(status.startedAt).toBeTruthy();
+    // メタ用の .current / .status はセッション一覧に混ざらない
+    expect(sessionNames(tmp)).toEqual(["s1"]);
+  });
+});
+
+/**
+ * セッションのライフサイクル(end / show / current)のテスト。
+ * start で「現在のセッション」になり、end で完了記録して current を解除する。
+ * name 省略時は現在のセッションを対象にし、存在しない指定はエラーにする。
+ */
+describe("session ライフサイクル", () => {
+  const currentName = (): string | null => {
+    const f = path.join(tmp, ".ai/sessions/.current");
+    return fs.existsSync(f) ? fs.readFileSync(f, "utf8").trim() : null;
+  };
+
+  it("end(name 省略)は現在のセッションを完了にし current を解除する", () => {
+    startSession(tmp, "s1");
+    endSession(tmp);
+    const status = JSON.parse(
+      fs.readFileSync(path.join(tmp, ".ai/sessions/.status/s1.json"), "utf8")
+    );
+    expect(status.endedAt).toBeTruthy();
+    expect(currentName()).toBeNull();
+  });
+
+  it("end は名前を明示指定できる", () => {
+    startSession(tmp, "s1");
+    startSession(tmp, "s2"); // current は s2 になる
+    endSession(tmp, "s1");
+    expect(currentName()).toBe("s2"); // s2 は current のまま
+  });
+
+  it("現在のセッションが無く名前も無ければ end はエラー", () => {
+    startSession(tmp, "s1");
+    endSession(tmp); // current 解除
+    expect(() => endSession(tmp)).toThrow(/指定してください/);
+  });
+
+  it("存在しないセッションの end はエラー", () => {
+    expect(() => endSession(tmp, "nope")).toThrow(/見つかりません/);
+  });
+
+  it("current は現在のセッション名を表示する", () => {
+    const spy = vi.spyOn(log, "info").mockImplementation(() => {});
+    startSession(tmp, "s1");
+    currentSession(tmp);
+    expect(spy.mock.calls.flat().join("\n")).toContain("現在のセッション: s1");
+    spy.mockRestore();
+  });
+
+  it("show は状態と未記入ファイルを表示する", () => {
+    write(".ai/templates/session/summary.md", ""); // 空テンプレ = 未記入で作られる
+    const spy = vi.spyOn(log, "info").mockImplementation(() => {});
+    startSession(tmp, "s1");
+    showSession(tmp);
+    const out = spy.mock.calls.flat().join("\n");
+    expect(out).toContain("s1（進行中）");
+    expect(out).toContain("summary.md（未記入）");
+    spy.mockRestore();
   });
 });
