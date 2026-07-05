@@ -19,11 +19,16 @@ import { DeepReport } from "../src/doctor/deep";
 
 let cwd: string;
 
-const report = (overall: number, reqScore: number, docPath?: string): DeepReport => ({
+const report = (
+  overall: number,
+  reqScore: number,
+  docPath?: string,
+  failed: { label: string; improvement: string }[] = []
+): DeepReport => ({
   since: "main",
   diff: { files: 0, insertions: 0, deletions: 0 },
   overall,
-  scores: [{ category: "requirements", label: "要件品質", score: reqScore, docPath, failed: [] }],
+  scores: [{ category: "requirements", label: "要件品質", score: reqScore, docPath, failed }],
 });
 
 const writeReport = (dir: string, timestamp: string, r: DeepReport): void => {
@@ -81,6 +86,25 @@ describe("renderDashboard", () => {
   it("docPath が無いカテゴリは「（なし）」表記", () => {
     const html = renderDashboard([{ timestamp: "t1", report: report(50, 50, undefined) }]);
     expect(html).toContain("（なし）");
+  });
+
+  it("未達項目があれば改善アクション(label → improvement)を出す", () => {
+    const html = renderDashboard([
+      {
+        timestamp: "t1",
+        report: report(30, 30, "docs/req.md", [
+          { label: "正常系がある", improvement: "代表的な正常系シナリオを追記する" },
+        ]),
+      },
+    ]);
+    expect(html).toContain("改善アクション");
+    expect(html).toContain("正常系がある");
+    expect(html).toContain("代表的な正常系シナリオを追記する");
+  });
+
+  it("未達項目が無ければ改善アクションなしと表示する", () => {
+    const html = renderDashboard([{ timestamp: "t1", report: report(100, 100, "docs/req.md") }]);
+    expect(html).toContain("改善アクションはありません");
   });
 });
 

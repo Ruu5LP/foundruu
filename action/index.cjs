@@ -39282,6 +39282,11 @@ function renderDashboard(history) {
     const deltaLabel = prev ? delta > 0 ? ` (\u25B2${delta})` : delta < 0 ? ` (\u25BC${-delta})` : " (\xB10)" : "";
     return `<tr><td>${s.label}</td><td style="color:${color(s.score)};font-weight:bold">${s.score}\u70B9${deltaLabel}</td><td>${s.docPath ?? "\uFF08\u306A\u3057\uFF09"}</td></tr>`;
   }).join("");
+  const actionable = [...latest.report.scores].filter((s) => s.failed.length > 0).sort((a, b) => a.score - b.score);
+  const actionsHtml = actionable.length ? actionable.map(
+    (s) => `<h3>${esc2(s.label)} <span class="meta">(${s.score}\u70B9${s.docPath ? ` / ${esc2(s.docPath)}` : ""})</span></h3>
+<ul>` + s.failed.map((f) => `<li><strong>${esc2(f.label)}</strong> \u2014 ${esc2(f.improvement)}</li>`).join("") + `</ul>`
+  ).join("\n") : `<p>\u6539\u5584\u30A2\u30AF\u30B7\u30E7\u30F3\u306F\u3042\u308A\u307E\u305B\u3093 \u{1F389}</p>`;
   return `<!doctype html>
 <html lang="ja">
 <head>
@@ -39293,7 +39298,9 @@ function renderDashboard(history) {
   th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; }
   th { background: #f5f5f5; }
   .overall { font-size: 2.5rem; font-weight: bold; color: ${color(latest.report.overall)}; }
-  .meta { color: #666; }
+  .meta { color: #666; font-weight: normal; }
+  h3 { margin: 1.2rem 0 .3rem; }
+  ul { line-height: 1.7; margin-top: .2rem; }
 </style>
 </head>
 <body>
@@ -39307,6 +39314,8 @@ ${trendSvg(history)}
   <tr><th>\u30AB\u30C6\u30B4\u30EA</th><th>\u30B9\u30B3\u30A2\uFF08\u524D\u56DE\u6BD4\uFF09</th><th>\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8</th></tr>
   ${categoryRows}
 </table>
+<h2>\u6539\u5584\u30A2\u30AF\u30B7\u30E7\u30F3\uFF08\u6700\u65B0\u30EC\u30DD\u30FC\u30C8\uFF09</h2>
+${actionsHtml}
 </body>
 </html>
 `;
@@ -39325,13 +39334,14 @@ function runDashboard(cwd, options) {
   import_fs16.default.writeFileSync(out2, renderDashboard(history));
   log.success(`\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9\u3092\u751F\u6210\u3057\u307E\u3057\u305F: ${out2}(\u30EC\u30DD\u30FC\u30C8${history.length}\u4EF6)`);
 }
-var import_fs16, import_path17;
+var import_fs16, import_path17, esc2;
 var init_dashboard = __esm({
   "src/commands/dashboard.ts"() {
     "use strict";
     import_fs16 = __toESM(require("fs"));
     import_path17 = __toESM(require("path"));
     init_logger();
+    esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 });
 

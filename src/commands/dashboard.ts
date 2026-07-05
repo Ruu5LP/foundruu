@@ -49,6 +49,9 @@ function trendSvg(history: HistoryEntry[]): string {
 </svg>`;
 }
 
+const esc = (s: string): string =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 export function renderDashboard(history: HistoryEntry[]): string {
   const latest = history[history.length - 1];
   const color = (s: number) => (s >= 80 ? "#22a06b" : s >= 50 ? "#b38600" : "#c9372c");
@@ -69,6 +72,26 @@ export function renderDashboard(history: HistoryEntry[]): string {
       return `<tr><td>${s.label}</td><td style="color:${color(s.score)};font-weight:bold">${s.score}点${deltaLabel}</td><td>${s.docPath ?? "（なし）"}</td></tr>`;
     })
     .join("");
+
+  // 改善アクション: 各カテゴリの未達項目(label → improvement)を、スコアの低い順に並べる。
+  // 「何をすればスコアが上がるか」を具体的に示す。
+  const actionable = [...latest.report.scores]
+    .filter((s) => s.failed.length > 0)
+    .sort((a, b) => a.score - b.score);
+  const actionsHtml = actionable.length
+    ? actionable
+        .map(
+          (s) =>
+            `<h3>${esc(s.label)} <span class="meta">(${s.score}点${s.docPath ? ` / ${esc(s.docPath)}` : ""})</span></h3>\n` +
+            `<ul>` +
+            s.failed
+              .map((f) => `<li><strong>${esc(f.label)}</strong> — ${esc(f.improvement)}</li>`)
+              .join("") +
+            `</ul>`
+        )
+        .join("\n")
+    : `<p>改善アクションはありません 🎉</p>`;
+
   return `<!doctype html>
 <html lang="ja">
 <head>
@@ -80,7 +103,9 @@ export function renderDashboard(history: HistoryEntry[]): string {
   th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; }
   th { background: #f5f5f5; }
   .overall { font-size: 2.5rem; font-weight: bold; color: ${color(latest.report.overall)}; }
-  .meta { color: #666; }
+  .meta { color: #666; font-weight: normal; }
+  h3 { margin: 1.2rem 0 .3rem; }
+  ul { line-height: 1.7; margin-top: .2rem; }
 </style>
 </head>
 <body>
@@ -94,6 +119,8 @@ ${trendSvg(history)}
   <tr><th>カテゴリ</th><th>スコア（前回比）</th><th>ドキュメント</th></tr>
   ${categoryRows}
 </table>
+<h2>改善アクション（最新レポート）</h2>
+${actionsHtml}
 </body>
 </html>
 `;
