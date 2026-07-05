@@ -46,10 +46,18 @@
 {{#if (hasFeature "eslint")}}
 - `npm run lint` でエラーがないこと
 {{/if}}
+{{#if (eq language "nuxt")}}
+- `npm run lint` でエラーがないこと
+{{/if}}
 {{#if (hasFeature "vitest")}}
 - `npm test` で全テストが通ること
 {{/if}}
+{{#if (eq language "laravel")}}
+- `composer lint`（Pint）で整形崩れがないこと
+- `composer analyse`（PHPStan/Larastan）でエラーがないこと
+{{else}}
 - `npm run typecheck` でエラーがないこと
+{{/if}}
 
 ---
 

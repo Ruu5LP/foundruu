@@ -1,0 +1,16 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    # 最低ライン。ここから下げない（さらに上げる場合は 9 / 10 を狙う）。
+    level: 8
+
+    paths:
+        - app
+        - config
+        - database
+        - routes
+
+    # 「無理やり型を合わせる」検出を有効にする
+    checkModelProperties: true
+    treatPhpDocTypesAsCertain: false

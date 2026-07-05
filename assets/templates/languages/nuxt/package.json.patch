@@ -8,11 +8,21 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "nuxt": "^4.4.0",
     "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^6.0.0",
+    "typescript-eslint": "^8.0.0",
+    "vue-tsc": "^3.0.0"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -6,6 +6,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 配布するコーディングルールを大幅に強化。「言語標準リンター任せ」で緩かった規約を、全配布言語で同水準に引き上げた
+  - **コーディング規約（`.ai/`）**: 「リンターが緑でも規約違反は不可」を明記。無理やり型を合わせるキャスト（`as any` / `as unknown as T` / `!` / `@ts-ignore`）の明示禁止、状態を極力持たない方針、意味ごとの命名プレフィクス表、ファイル肥大化・ディレクトリ構造の規律を追加
+  - **ESLint（TypeScript / Next.js）**: `recommended` から型情報ベースの `strictTypeChecked` + `stylisticTypeChecked` へ格上げ。`no-explicit-any`/`no-non-null-assertion`/`ban-ts-comment`/`no-floating-promises`/`switch-exhaustiveness-check`/`naming-convention`/`max-lines` などを規約と1対1で有効化
+  - **Nuxt**: `@nuxt/eslint`（Vue + TypeScript 対応）を標準同梱し、同等の厳格ルールを適用。さらに `.ts` / `.tsx` には型情報を使う `strictTypeChecked` + `stylisticTypeChecked`（`no-floating-promises` 等の型フロー系）をスコープ適用し、TS/Next と同水準に。`lint` / `typecheck` スクリプトを追加
+  - **Laravel**: Larastan/PHPStan を追加（`phpstan.neon`、`level: 8` を最低ライン）。`composer lint` / `analyse` スクリプトと、AI チェックリストへの反映を追加
+
 ## [0.11.0] - 2026-07-05
 
 ### Changed

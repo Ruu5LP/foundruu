@@ -1,0 +1,83 @@
+// @ts-check
+// FoundRuu 標準 Nuxt ESLint 設定。
+// @nuxt/eslint が Vue + TypeScript + Nuxt のディレクトリ規約を解決し、
+// その上にコーディング規約（.ai/company/coding-standard.md）を担保する厳格ルールを重ねる。
+// リンターが緑でも規約違反は不可。
+import withNuxt from './.nuxt/eslint.config.mjs'
+import tseslint from 'typescript-eslint'
+
+// 型情報を使う厳格ルールは .ts / .tsx にスコープする。
+// （.vue の型認識リンティングはコスト・相性の問題が大きいため対象外にしている）
+const typeChecked = tseslint.config({
+  files: ['**/*.ts', '**/*.tsx'],
+  extends: [tseslint.configs.strictTypeChecked, tseslint.configs.stylisticTypeChecked],
+  languageOptions: {
+    parserOptions: {
+      projectService: true,
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+  rules: {
+    '@typescript-eslint/no-non-null-assertion': 'error',
+    '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+    // 真偽値のプレフィクス統一（型情報が必要なため型認識ブロックで有効化）
+    '@typescript-eslint/naming-convention': [
+      'error',
+      {
+        selector: 'variable',
+        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+        leadingUnderscore: 'allow',
+      },
+      { selector: 'function', format: ['camelCase', 'PascalCase'] },
+      { selector: 'typeLike', format: ['PascalCase'] },
+      {
+        selector: 'variable',
+        types: ['boolean'],
+        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+        prefix: ['is', 'has', 'can', 'should', 'will', 'did', 'IS_', 'HAS_', 'CAN_', 'SHOULD_'],
+      },
+    ],
+  },
+})
+
+export default withNuxt({
+  rules: {
+    // --- 状態を極力持たない / 不変性を優先 ---
+    'no-var': 'error',
+    'prefer-const': 'error',
+    'no-param-reassign': ['error', { props: true }],
+
+    // --- AI にありがちな「無理やり型を合わせる」を禁止 ---
+    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-non-null-assertion': 'error',
+    '@typescript-eslint/consistent-type-imports': 'error',
+    '@typescript-eslint/ban-ts-comment': [
+      'error',
+      { 'ts-expect-error': 'allow-with-description', 'ts-ignore': true, 'ts-nocheck': true },
+    ],
+
+    // --- 未使用コードを残さない ---
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+    ],
+
+    // --- ファイル肥大化・複雑度を抑える ---
+    'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
+    'max-lines-per-function': ['warn', { max: 80, skipBlankLines: true, skipComments: true }],
+    'max-depth': ['error', 3],
+    complexity: ['warn', 12],
+
+    // --- 命名プレフィクスを意味ごとに揃える ---
+    '@typescript-eslint/naming-convention': [
+      'error',
+      {
+        selector: 'variable',
+        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+        leadingUnderscore: 'allow',
+      },
+      { selector: 'function', format: ['camelCase', 'PascalCase'] },
+      { selector: 'typeLike', format: ['PascalCase'] },
+    ],
+  },
+}).append(...typeChecked)
