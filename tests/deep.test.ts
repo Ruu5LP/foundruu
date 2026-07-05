@@ -38,10 +38,21 @@ describe("scanDocs", () => {
 });
 
 describe("runDeepDoctor", () => {
-  it("ドキュメントが無いカテゴリは0点になる", () => {
+  it("ドキュメントが無いカテゴリは未計測(docPath なし)で、総合は 0 のまま", () => {
     const report = runDeepDoctor(tmp, "main");
-    expect(report.scores.every((s) => s.score === 0)).toBe(true);
+    expect(report.scores.every((s) => s.docPath === undefined)).toBe(true);
     expect(report.overall).toBe(0);
+  });
+
+  it("総合スコアは計測できた(docPath あり)カテゴリのみで平均する", () => {
+    // requirements だけ満点、他3カテゴリは未計測 → 0 で薄めず総合 100
+    write(
+      "docs/requirements.md",
+      "## 目的\n## 対象外\n## 正常系\n## 異常系\n## 権限\n## 完了条件\n"
+    );
+    const report = runDeepDoctor(tmp, "main");
+    expect(report.scores.find((s) => s.category === "requirements")!.score).toBe(100);
+    expect(report.overall).toBe(100);
   });
 
   it("観点が揃った要件ドキュメントは高スコアになる", () => {

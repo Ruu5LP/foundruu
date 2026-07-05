@@ -22,17 +22,20 @@ function writeFile(file: string, content: string): string {
 }
 
 function renderMarkdown(report: DeepReport): string {
+  const hasMeasured = report.scores.some((s) => s.docPath !== undefined);
+  const scoreText = (s: DeepReport["scores"][number]): string =>
+    s.docPath !== undefined ? `${s.score}点` : "未計測";
   const lines: string[] = [
     "# FoundRuu Deep Report",
     "",
     `- 生成日時: ${new Date().toISOString()}`,
     `- 比較基準: \`${report.since}\``,
     `- 差分: ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}`,
-    `- **総合スコア: ${report.overall}点**`,
+    `- **総合スコア: ${hasMeasured ? `${report.overall}点` : "未計測"}**`,
     "",
     "| カテゴリ | スコア | ドキュメント |",
     "|---|---|---|",
-    ...report.scores.map((s) => `| ${s.label} | ${s.score}点 | ${s.docPath ?? "（なし）"} |`),
+    ...report.scores.map((s) => `| ${s.label} | ${scoreText(s)} | ${s.docPath ?? "（なし）"} |`),
     "",
   ];
   for (const s of report.scores) {
@@ -48,16 +51,21 @@ function renderMarkdown(report: DeepReport): string {
 
 function renderHtml(report: DeepReport): string {
   const color = (score: number) => (score >= 80 ? "#22a06b" : score >= 50 ? "#b38600" : "#c9372c");
+  const hasMeasured = report.scores.some((s) => s.docPath !== undefined);
   const rows = report.scores
-    .map(
-      (s) => `
+    .map((s) => {
+      const scoreCell =
+        s.docPath !== undefined
+          ? `<td style="color:${color(s.score)};font-weight:bold">${s.score}点</td>`
+          : `<td style="color:#666">未計測</td>`;
+      return `
       <tr>
         <td>${escapeHtml(s.label)}</td>
-        <td style="color:${color(s.score)};font-weight:bold">${s.score}点</td>
+        ${scoreCell}
         <td>${escapeHtml(s.docPath ?? "（なし）")}</td>
         <td><ul>${s.failed.map((f) => `<li><b>${escapeHtml(f.label)}</b> — ${escapeHtml(f.improvement)}</li>`).join("")}</ul></td>
-      </tr>`
-    )
+      </tr>`;
+    })
     .join("");
   return `<!doctype html>
 <html lang="ja">
@@ -69,13 +77,13 @@ function renderHtml(report: DeepReport): string {
   table { border-collapse: collapse; width: 100%; }
   th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; vertical-align: top; }
   th { background: #f5f5f5; }
-  .overall { font-size: 2rem; font-weight: bold; color: ${color(report.overall)}; }
+  .overall { font-size: 2rem; font-weight: bold; color: ${hasMeasured ? color(report.overall) : "#666"}; }
 </style>
 </head>
 <body>
 <h1>FoundRuu Deep Report</h1>
 <p>比較基準: <code>${escapeHtml(report.since)}</code> / 差分: ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}</p>
-<p class="overall">総合スコア: ${report.overall}点</p>
+<p class="overall">総合スコア: ${hasMeasured ? `${report.overall}点` : "未計測"}</p>
 <table>
   <tr><th>カテゴリ</th><th>スコア</th><th>ドキュメント</th><th>改善案</th></tr>
   ${rows}

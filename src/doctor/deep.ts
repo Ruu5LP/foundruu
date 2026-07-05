@@ -281,6 +281,12 @@ export function runDeepDoctor(cwd: string, since: string): DeepReport {
     }
   );
 
-  const overall = Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length);
+  // 該当ドキュメントが存在しないカテゴリ(docPath なし)は「未計測」とし、総合スコアに算入しない。
+  // 「ドキュメントの有無」は基本の doctor が見る領域で、--deep は「ある文書の中身の質」を測るため、
+  // 文書が無いことを 0 点として二重に減点しない(well-documented でも 0 点になる問題の対策)。
+  const measured = scores.filter((s) => s.docPath !== undefined);
+  const overall = measured.length
+    ? Math.round(measured.reduce((sum, s) => sum + s.score, 0) / measured.length)
+    : 0;
   return { since, diff, scores, overall };
 }

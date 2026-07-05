@@ -6600,7 +6600,8 @@ function runDeepDoctor(cwd, since) {
       };
     }
   );
-  const overall = Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length);
+  const measured = scores.filter((s) => s.docPath !== void 0);
+  const overall = measured.length ? Math.round(measured.reduce((sum, s) => sum + s.score, 0) / measured.length) : 0;
   return { since, diff, scores, overall };
 }
 var import_child_process, import_fs10, import_path10, CATEGORY_LABELS, CATEGORY_PATTERNS, deepRules;
@@ -39280,8 +39281,12 @@ function renderDashboard(history) {
     const prev = history.length > 1 ? history[history.length - 2].report.scores.find((p) => p.category === s.category) : void 0;
     const delta = prev ? s.score - prev.score : 0;
     const deltaLabel = prev ? delta > 0 ? ` (\u25B2${delta})` : delta < 0 ? ` (\u25BC${-delta})` : " (\xB10)" : "";
-    return `<tr><td>${s.label}</td><td style="color:${color(s.score)};font-weight:bold">${s.score}\u70B9${deltaLabel}</td><td>${s.docPath ?? "\uFF08\u306A\u3057\uFF09"}</td></tr>`;
+    const scoreCell = s.docPath !== void 0 ? `<span style="color:${color(s.score)};font-weight:bold">${s.score}\u70B9${deltaLabel}</span>` : `<span class="meta">\u672A\u8A08\u6E2C</span>`;
+    return `<tr><td>${s.label}</td><td>${scoreCell}</td><td>${s.docPath ?? "\uFF08\u306A\u3057\uFF09"}</td></tr>`;
   }).join("");
+  const hasMeasured = latest.report.scores.some((s) => s.docPath !== void 0);
+  const overallColor = hasMeasured ? color(latest.report.overall) : "#666";
+  const overallText = hasMeasured ? `\u7DCF\u5408\u30B9\u30B3\u30A2: ${latest.report.overall}\u70B9` : "\u7DCF\u5408\u30B9\u30B3\u30A2: \u672A\u8A08\u6E2C";
   const actionable = [...latest.report.scores].filter((s) => s.failed.length > 0).sort((a, b) => a.score - b.score);
   const actionsHtml = actionable.length ? actionable.map(
     (s) => `<h3>${esc2(s.label)} <span class="meta">(${s.score}\u70B9${s.docPath ? ` / ${esc2(s.docPath)}` : ""})</span></h3>
@@ -39297,7 +39302,7 @@ function renderDashboard(history) {
   table { border-collapse: collapse; width: 100%; }
   th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; }
   th { background: #f5f5f5; }
-  .overall { font-size: 2.5rem; font-weight: bold; color: ${color(latest.report.overall)}; }
+  .overall { font-size: 2.5rem; font-weight: bold; color: ${overallColor}; }
   .meta { color: #666; font-weight: normal; }
   h3 { margin: 1.2rem 0 .3rem; }
   ul { line-height: 1.7; margin-top: .2rem; }
@@ -39306,7 +39311,7 @@ function renderDashboard(history) {
 <body>
 <h1>FoundRuu Dashboard</h1>
 <p class="meta">\u30EC\u30DD\u30FC\u30C8 ${history.length}\u4EF6 / \u6700\u65B0: ${latest.timestamp}</p>
-<p class="overall">\u7DCF\u5408\u30B9\u30B3\u30A2: ${latest.report.overall}\u70B9</p>
+<p class="overall">${overallText}</p>
 <h2>\u30B9\u30B3\u30A2\u63A8\u79FB</h2>
 ${trendSvg(history)}
 <h2>\u6700\u65B0\u306E\u30AB\u30C6\u30B4\u30EA\u5225\u30B9\u30B3\u30A2</h2>
@@ -42924,17 +42929,19 @@ function writeFile(file2, content) {
   return file2;
 }
 function renderMarkdown(report) {
+  const hasMeasured = report.scores.some((s) => s.docPath !== void 0);
+  const scoreText = (s) => s.docPath !== void 0 ? `${s.score}\u70B9` : "\u672A\u8A08\u6E2C";
   const lines = [
     "# FoundRuu Deep Report",
     "",
     `- \u751F\u6210\u65E5\u6642: ${(/* @__PURE__ */ new Date()).toISOString()}`,
     `- \u6BD4\u8F03\u57FA\u6E96: \`${report.since}\``,
     `- \u5DEE\u5206: ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}`,
-    `- **\u7DCF\u5408\u30B9\u30B3\u30A2: ${report.overall}\u70B9**`,
+    `- **\u7DCF\u5408\u30B9\u30B3\u30A2: ${hasMeasured ? `${report.overall}\u70B9` : "\u672A\u8A08\u6E2C"}**`,
     "",
     "| \u30AB\u30C6\u30B4\u30EA | \u30B9\u30B3\u30A2 | \u30C9\u30AD\u30E5\u30E1\u30F3\u30C8 |",
     "|---|---|---|",
-    ...report.scores.map((s) => `| ${s.label} | ${s.score}\u70B9 | ${s.docPath ?? "\uFF08\u306A\u3057\uFF09"} |`),
+    ...report.scores.map((s) => `| ${s.label} | ${scoreText(s)} | ${s.docPath ?? "\uFF08\u306A\u3057\uFF09"} |`),
     ""
   ];
   for (const s of report.scores) {
@@ -42949,15 +42956,17 @@ function renderMarkdown(report) {
 }
 function renderHtml(report) {
   const color = (score) => score >= 80 ? "#22a06b" : score >= 50 ? "#b38600" : "#c9372c";
-  const rows = report.scores.map(
-    (s) => `
+  const hasMeasured = report.scores.some((s) => s.docPath !== void 0);
+  const rows = report.scores.map((s) => {
+    const scoreCell = s.docPath !== void 0 ? `<td style="color:${color(s.score)};font-weight:bold">${s.score}\u70B9</td>` : `<td style="color:#666">\u672A\u8A08\u6E2C</td>`;
+    return `
       <tr>
         <td>${escapeHtml(s.label)}</td>
-        <td style="color:${color(s.score)};font-weight:bold">${s.score}\u70B9</td>
+        ${scoreCell}
         <td>${escapeHtml(s.docPath ?? "\uFF08\u306A\u3057\uFF09")}</td>
         <td><ul>${s.failed.map((f) => `<li><b>${escapeHtml(f.label)}</b> \u2014 ${escapeHtml(f.improvement)}</li>`).join("")}</ul></td>
-      </tr>`
-  ).join("");
+      </tr>`;
+  }).join("");
   return `<!doctype html>
 <html lang="ja">
 <head>
@@ -42968,13 +42977,13 @@ function renderHtml(report) {
   table { border-collapse: collapse; width: 100%; }
   th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; vertical-align: top; }
   th { background: #f5f5f5; }
-  .overall { font-size: 2rem; font-weight: bold; color: ${color(report.overall)}; }
+  .overall { font-size: 2rem; font-weight: bold; color: ${hasMeasured ? color(report.overall) : "#666"}; }
 </style>
 </head>
 <body>
 <h1>FoundRuu Deep Report</h1>
 <p>\u6BD4\u8F03\u57FA\u6E96: <code>${escapeHtml(report.since)}</code> / \u5DEE\u5206: ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}</p>
-<p class="overall">\u7DCF\u5408\u30B9\u30B3\u30A2: ${report.overall}\u70B9</p>
+<p class="overall">\u7DCF\u5408\u30B9\u30B3\u30A2: ${hasMeasured ? `${report.overall}\u70B9` : "\u672A\u8A08\u6E2C"}</p>
 <table>
   <tr><th>\u30AB\u30C6\u30B4\u30EA</th><th>\u30B9\u30B3\u30A2</th><th>\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8</th><th>\u6539\u5584\u6848</th></tr>
   ${rows}
@@ -43008,17 +43017,28 @@ function runDeep(cwd, options) {
 `
   );
   for (const s of report.scores) {
-    const color = scoreColor(s.score);
-    const bar = "\u2588".repeat(Math.round(s.score / 10)).padEnd(10, "\u2591");
-    log.info(
-      `${color(bar)} ${String(s.score).padStart(3)}\u70B9 ${s.label}${s.docPath ? import_picocolors2.default.dim(`(${s.docPath})`) : ""}`
-    );
+    if (s.docPath === void 0) {
+      log.info(`${import_picocolors2.default.dim("\u2591".repeat(10))} ${import_picocolors2.default.dim("\u672A\u8A08\u6E2C")} ${s.label}`);
+    } else {
+      const color = scoreColor(s.score);
+      const bar = "\u2588".repeat(Math.round(s.score / 10)).padEnd(10, "\u2591");
+      log.info(
+        `${color(bar)} ${String(s.score).padStart(3)}\u70B9 ${s.label}${import_picocolors2.default.dim(`(${s.docPath})`)}`
+      );
+    }
     for (const f of s.failed) {
       log.info(import_picocolors2.default.dim(`    - ${f.label} \u2192 ${f.improvement}`));
     }
   }
   log.info("");
-  log.info(`\u7DCF\u5408\u30B9\u30B3\u30A2: ${scoreColor(report.overall)(import_picocolors2.default.bold(`${report.overall}\u70B9`))}`);
+  if (report.scores.some((s) => s.docPath !== void 0)) {
+    log.info(`\u7DCF\u5408\u30B9\u30B3\u30A2: ${scoreColor(report.overall)(import_picocolors2.default.bold(`${report.overall}\u70B9`))}`);
+  } else {
+    log.info(import_picocolors2.default.dim("\u7DCF\u5408\u30B9\u30B3\u30A2: \u672A\u8A08\u6E2C\uFF08\u8981\u4EF6/\u8A2D\u8A08/\u30C6\u30B9\u30C8/AI\u6307\u793A\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\uFF09"));
+    log.info(
+      import_picocolors2.default.dim("  docs/ \u306B requirements.md / design.md / test.md \u7B49\u3092\u7528\u610F\u3059\u308B\u3068\u8A08\u6E2C\u3055\u308C\u307E\u3059\u3002")
+    );
+  }
 }
 function runDoctorCommand(cwd, options) {
   if (options.deep) {
