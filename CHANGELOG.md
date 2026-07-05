@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-07-05
+
 ### Added
 
 - ダッシュボードに「改善アクション」セクションを追加。各カテゴリの未達項目と具体的な改善方法（`label → improvement`）をスコアの低い順に表示し、スコアだけでなく次に何をすべきかが分かるようにした
@@ -96,7 +98,8 @@
 
 - 初回リリース。`init` / `workflow` / `doctor` / `session` / `templates` と npm 公開
 
-[Unreleased]: https://github.com/Ruu5LP/foundruu/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/Ruu5LP/foundruu/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/Ruu5LP/foundruu/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/Ruu5LP/foundruu/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/Ruu5LP/foundruu/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/Ruu5LP/foundruu/compare/v0.7.0...v0.7.1
