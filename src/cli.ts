@@ -4,7 +4,13 @@ import { runInit } from "./commands/init";
 import { installWorkflow } from "./commands/workflow";
 import { runDoctorCommand } from "./commands/doctor";
 import { runUpdate } from "./commands/update";
-import { startSession, listSessions } from "./commands/session";
+import {
+  startSession,
+  listSessions,
+  endSession,
+  showSession,
+  currentSession,
+} from "./commands/session";
 import { cliVersion } from "./core/config";
 import { log } from "./core/logger";
 import { templates } from "./registry/templates";
@@ -116,6 +122,24 @@ session
   .description("既存セッションを一覧表示する")
   .action(async () => {
     await wrap(() => listSessions(process.cwd()));
+  });
+session
+  .command("show [name]")
+  .description("セッションの状態とファイルを表示する（name 省略で現在のセッション）")
+  .action(async (name?: string) => {
+    await wrap(() => showSession(process.cwd(), name));
+  });
+session
+  .command("end [name]")
+  .description("セッションを完了として記録する（name 省略で現在のセッション）")
+  .action(async (name?: string) => {
+    await wrap(() => endSession(process.cwd(), name));
+  });
+session
+  .command("current")
+  .description("現在のセッションを表示する")
+  .action(async () => {
+    await wrap(() => currentSession(process.cwd()));
   });
 
 const cloud = program.command("cloud").description("FoundRuu Cloud(レポート集約)と連携する");
