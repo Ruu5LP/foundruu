@@ -6618,10 +6618,16 @@ var init_deep = __esm({
       aiInstructions: "AI\u6307\u793A\u54C1\u8CEA"
     };
     CATEGORY_PATTERNS = [
-      { category: "requirements", pattern: /requirement/i },
-      { category: "design", pattern: /design/i },
-      { category: "test", pattern: /test/i },
-      { category: "aiInstructions", pattern: /(ai[-_]?instructions?|claude|prompt)/i }
+      {
+        category: "aiInstructions",
+        pattern: /ai[-_]?instructions?|claude|codex|agents?|copilot|cursor|prompt|指示/i
+      },
+      {
+        category: "requirements",
+        pattern: /requirement|spec|specification|prd|user[-_ ]?stor|要件|仕様/i
+      },
+      { category: "design", pattern: /design|architecture|adr|設計|アーキ/i },
+      { category: "test", pattern: /test|testing|qa|テスト|検証/i }
     ];
     deepRules = [
       {

@@ -35,6 +35,16 @@ describe("scanDocs", () => {
     expect(docs.get("requirements")?.path).toBe("docs/requirements.md");
     expect(docs.get("design")?.path).toBe(path.join(".ai/sessions/s1", "design.md"));
   });
+
+  it("別名のファイル名も拾う(architecture→設計 / spec→要件 / AGENTS→AI指示)", () => {
+    write("docs/architecture.md", "# アーキテクチャ");
+    write("docs/spec.md", "# 仕様");
+    write("AGENTS.md", "# AIエージェントへの指示");
+    const docs = scanDocs(tmp);
+    expect(docs.get("design")?.path).toBe("docs/architecture.md");
+    expect(docs.get("requirements")?.path).toBe("docs/spec.md");
+    expect(docs.get("aiInstructions")?.path).toBe("AGENTS.md");
+  });
 });
 
 describe("runDeepDoctor", () => {

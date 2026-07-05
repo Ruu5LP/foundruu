@@ -38,11 +38,19 @@ const CATEGORY_LABELS: Record<DocCategory, string> = {
   aiInstructions: "AI指示品質",
 };
 
+// カテゴリ判定はファイル名(basename)に対して行う。よくある別名も拾えるよう広めに取る。
+// 上から順にマッチを試すため、より具体的なもの(aiInstructions)を先に置く。
 const CATEGORY_PATTERNS: { category: DocCategory; pattern: RegExp }[] = [
-  { category: "requirements", pattern: /requirement/i },
-  { category: "design", pattern: /design/i },
-  { category: "test", pattern: /test/i },
-  { category: "aiInstructions", pattern: /(ai[-_]?instructions?|claude|prompt)/i },
+  {
+    category: "aiInstructions",
+    pattern: /ai[-_]?instructions?|claude|codex|agents?|copilot|cursor|prompt|指示/i,
+  },
+  {
+    category: "requirements",
+    pattern: /requirement|spec|specification|prd|user[-_ ]?stor|要件|仕様/i,
+  },
+  { category: "design", pattern: /design|architecture|adr|設計|アーキ/i },
+  { category: "test", pattern: /test|testing|qa|テスト|検証/i },
 ];
 
 /** DevDoctor rules.ts 由来のキーワードルール */
