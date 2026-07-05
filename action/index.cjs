@@ -43022,7 +43022,9 @@ function runDeep(cwd, options) {
     } else {
       const color = scoreColor(s.score);
       const bar = "\u2588".repeat(Math.round(s.score / 10)).padEnd(10, "\u2591");
-      log.info(`${color(bar)} ${String(s.score).padStart(3)}\u70B9 ${s.label}${import_picocolors2.default.dim(`(${s.docPath})`)}`);
+      log.info(
+        `${color(bar)} ${String(s.score).padStart(3)}\u70B9 ${s.label}${import_picocolors2.default.dim(`(${s.docPath})`)}`
+      );
     }
     for (const f of s.failed) {
       log.info(import_picocolors2.default.dim(`    - ${f.label} \u2192 ${f.improvement}`));
@@ -43033,7 +43035,9 @@ function runDeep(cwd, options) {
     log.info(`\u7DCF\u5408\u30B9\u30B3\u30A2: ${scoreColor(report.overall)(import_picocolors2.default.bold(`${report.overall}\u70B9`))}`);
   } else {
     log.info(import_picocolors2.default.dim("\u7DCF\u5408\u30B9\u30B3\u30A2: \u672A\u8A08\u6E2C\uFF08\u8981\u4EF6/\u8A2D\u8A08/\u30C6\u30B9\u30C8/AI\u6307\u793A\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\uFF09"));
-    log.info(import_picocolors2.default.dim("  docs/ \u306B requirements.md / design.md / test.md \u7B49\u3092\u7528\u610F\u3059\u308B\u3068\u8A08\u6E2C\u3055\u308C\u307E\u3059\u3002"));
+    log.info(
+      import_picocolors2.default.dim("  docs/ \u306B requirements.md / design.md / test.md \u7B49\u3092\u7528\u610F\u3059\u308B\u3068\u8A08\u6E2C\u3055\u308C\u307E\u3059\u3002")
+    );
   }
 }
 function runDoctorCommand(cwd, options) {
