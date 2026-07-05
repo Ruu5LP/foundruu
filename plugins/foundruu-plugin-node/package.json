@@ -1,0 +1,18 @@
+{
+  "name": "foundruu-plugin-node",
+  "version": "0.1.0",
+  "description": "FoundRuu 公式プラグイン - Node.js 開発衛生の doctor チェックを追加",
+  "license": "MIT",
+  "main": "index.js",
+  "files": ["index.js"],
+  "keywords": ["foundruu", "foundruu-plugin", "node"],
+  "author": "Ruu5LP",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ruu5LP/foundruu.git",
+    "directory": "plugins/foundruu-plugin-node"
+  },
+  "peerDependencies": {
+    "foundruu": ">=0.7.0"
+  }
+}
