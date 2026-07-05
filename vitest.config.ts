@@ -15,10 +15,10 @@ export default defineConfig({
       // 回帰防止の下限。現状値より少し低く設定し、カバレッジが下がる変更で CI を落とす。
       // 上げたくなったら実測値に合わせて引き上げる。
       thresholds: {
-        statements: 45,
-        branches: 38,
-        functions: 48,
-        lines: 45,
+        statements: 62,
+        branches: 55,
+        functions: 65,
+        lines: 62,
       },
     },
   },
