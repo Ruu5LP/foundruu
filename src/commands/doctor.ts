@@ -33,17 +33,29 @@ function runDeep(cwd: string, options: DoctorOptions): void {
     `差分(${report.since} 基準): ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}\n`
   );
   for (const s of report.scores) {
-    const color = scoreColor(s.score);
-    const bar = "█".repeat(Math.round(s.score / 10)).padEnd(10, "░");
-    log.info(
-      `${color(bar)} ${String(s.score).padStart(3)}点 ${s.label}${s.docPath ? pc.dim(`(${s.docPath})`) : ""}`
-    );
+    if (s.docPath === undefined) {
+      // 該当ドキュメントが無い = 未計測(0点ではない)
+      log.info(`${pc.dim("░".repeat(10))} ${pc.dim("未計測")} ${s.label}`);
+    } else {
+      const color = scoreColor(s.score);
+      const bar = "█".repeat(Math.round(s.score / 10)).padEnd(10, "░");
+      log.info(
+        `${color(bar)} ${String(s.score).padStart(3)}点 ${s.label}${pc.dim(`(${s.docPath})`)}`
+      );
+    }
     for (const f of s.failed) {
       log.info(pc.dim(`    - ${f.label} → ${f.improvement}`));
     }
   }
   log.info("");
-  log.info(`総合スコア: ${scoreColor(report.overall)(pc.bold(`${report.overall}点`))}`);
+  if (report.scores.some((s) => s.docPath !== undefined)) {
+    log.info(`総合スコア: ${scoreColor(report.overall)(pc.bold(`${report.overall}点`))}`);
+  } else {
+    log.info(pc.dim("総合スコア: 未計測（要件/設計/テスト/AI指示のドキュメントが見つかりません）"));
+    log.info(
+      pc.dim("  docs/ に requirements.md / design.md / test.md 等を用意すると計測されます。")
+    );
+  }
 }
 
 export function runDoctorCommand(cwd: string, options: DoctorOptions): void {

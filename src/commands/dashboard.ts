@@ -69,9 +69,18 @@ export function renderDashboard(history: HistoryEntry[]): string {
             ? ` (▼${-delta})`
             : " (±0)"
         : "";
-      return `<tr><td>${s.label}</td><td style="color:${color(s.score)};font-weight:bold">${s.score}点${deltaLabel}</td><td>${s.docPath ?? "（なし）"}</td></tr>`;
+      const scoreCell =
+        s.docPath !== undefined
+          ? `<span style="color:${color(s.score)};font-weight:bold">${s.score}点${deltaLabel}</span>`
+          : `<span class="meta">未計測</span>`;
+      return `<tr><td>${s.label}</td><td>${scoreCell}</td><td>${s.docPath ?? "（なし）"}</td></tr>`;
     })
     .join("");
+
+  // 計測できたカテゴリが1つも無ければ総合スコアは「未計測」表示にする(0点の誤解を避ける)
+  const hasMeasured = latest.report.scores.some((s) => s.docPath !== undefined);
+  const overallColor = hasMeasured ? color(latest.report.overall) : "#666";
+  const overallText = hasMeasured ? `総合スコア: ${latest.report.overall}点` : "総合スコア: 未計測";
 
   // 改善アクション: 各カテゴリの未達項目(label → improvement)を、スコアの低い順に並べる。
   // 「何をすればスコアが上がるか」を具体的に示す。
@@ -102,7 +111,7 @@ export function renderDashboard(history: HistoryEntry[]): string {
   table { border-collapse: collapse; width: 100%; }
   th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; }
   th { background: #f5f5f5; }
-  .overall { font-size: 2.5rem; font-weight: bold; color: ${color(latest.report.overall)}; }
+  .overall { font-size: 2.5rem; font-weight: bold; color: ${overallColor}; }
   .meta { color: #666; font-weight: normal; }
   h3 { margin: 1.2rem 0 .3rem; }
   ul { line-height: 1.7; margin-top: .2rem; }
@@ -111,7 +120,7 @@ export function renderDashboard(history: HistoryEntry[]): string {
 <body>
 <h1>FoundRuu Dashboard</h1>
 <p class="meta">レポート ${history.length}件 / 最新: ${latest.timestamp}</p>
-<p class="overall">総合スコア: ${latest.report.overall}点</p>
+<p class="overall">${overallText}</p>
 <h2>スコア推移</h2>
 ${trendSvg(history)}
 <h2>最新のカテゴリ別スコア</h2>

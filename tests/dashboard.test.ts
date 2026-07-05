@@ -22,7 +22,7 @@ let cwd: string;
 const report = (
   overall: number,
   reqScore: number,
-  docPath?: string,
+  docPath?: string, // docPath なし = 未計測扱い
   failed: { label: string; improvement: string }[] = []
 ): DeepReport => ({
   since: "main",
@@ -71,14 +71,14 @@ describe("renderDashboard", () => {
 
   it("2 件以上ではカテゴリスコアの前回比(▲/▼)を出す", () => {
     const up = renderDashboard([
-      { timestamp: "t1", report: report(40, 40) },
-      { timestamp: "t2", report: report(70, 70) },
+      { timestamp: "t1", report: report(40, 40, "docs/req.md") },
+      { timestamp: "t2", report: report(70, 70, "docs/req.md") },
     ]);
     expect(up).toContain("▲30");
 
     const down = renderDashboard([
-      { timestamp: "t1", report: report(70, 70) },
-      { timestamp: "t2", report: report(50, 50) },
+      { timestamp: "t1", report: report(70, 70, "docs/req.md") },
+      { timestamp: "t2", report: report(50, 50, "docs/req.md") },
     ]);
     expect(down).toContain("▼20");
   });
@@ -106,12 +106,18 @@ describe("renderDashboard", () => {
     const html = renderDashboard([{ timestamp: "t1", report: report(100, 100, "docs/req.md") }]);
     expect(html).toContain("改善アクションはありません");
   });
+
+  it("計測カテゴリが無ければ 0点 ではなく未計測を表示する", () => {
+    const html = renderDashboard([{ timestamp: "t1", report: report(0, 0, undefined) }]);
+    expect(html).toContain("総合スコア: 未計測");
+    expect(html).not.toContain("総合スコア: 0点");
+  });
 });
 
 describe("runDashboard", () => {
   it("履歴があれば既定で index.html を書き出す", () => {
     const dir = path.join(cwd, "reports");
-    writeReport(dir, "2026-07-01", report(82, 82));
+    writeReport(dir, "2026-07-01", report(82, 82, "docs/req.md"));
     runDashboard(cwd, {});
     const out = path.join(dir, "index.html");
     expect(fs.existsSync(out)).toBe(true);
@@ -120,7 +126,7 @@ describe("runDashboard", () => {
 
   it("--out で出力先を指定できる", () => {
     const dir = path.join(cwd, "reports");
-    writeReport(dir, "2026-07-01", report(82, 82));
+    writeReport(dir, "2026-07-01", report(82, 82, "docs/req.md"));
     runDashboard(cwd, { out: "custom.html" });
     expect(fs.existsSync(path.join(cwd, "custom.html"))).toBe(true);
   });
