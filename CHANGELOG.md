@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `doctor --deep`: ドキュメント検出パターンを拡張。`architecture.md`→設計、`spec.md`/`prd.md`→要件、`AGENTS.md`/`CODEX.md`→AI指示、`テスト.md` など、決まったファイル名以外の一般的な別名も拾えるようにした
+
 ## [0.10.0] - 2026-07-05
 
 ### Added
