@@ -1,0 +1,33 @@
+# FoundRuu 標準 Python ツール設定。
+# コーディング規約（.ai/company/coding-standard.md）を Ruff（lint + format）と
+# mypy（型チェック / strict）で機械的に担保する。緑でも規約違反は不可。
+# 依存は requirements.txt / requirements-dev.txt で管理する（Docker・CI と揃える）。
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["."]
+
+[tool.ruff.lint]
+# F: 未使用/未定義, E/W: pycodestyle, I: import順, N: 命名規約(snake_case 等),
+# UP: 新しい書き方, B: bugbear, SIM: 簡潔化, C4: 内包表記, PTH: pathlib,
+# ANN: 型注釈必須（ANN401 = Any 禁止も含む。規約の no-explicit-any 相当）,
+# RUF: Ruff 固有, TID: import 整理
+select = ["F", "E", "W", "I", "N", "UP", "B", "SIM", "C4", "PTH", "ANN", "RUF", "TID"]
+# RUF001-003: 日本語コメント/文字列中の全角記号（（）や 、。）を誤検知させない
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+# テストは型注釈必須を緩める
+"tests/**" = ["ANN"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+disallow_any_explicit = true  # Any の明示使用を禁止（型が不明なら絞り込む）
+warn_unreachable = true
+files = ["main.py", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

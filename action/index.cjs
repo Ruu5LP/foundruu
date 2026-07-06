@@ -42787,6 +42787,15 @@ var templates = [
     languageLabel: "Nuxt",
     features: ["prettier", "github-actions"],
     aiProviders: ["claude", "codex"]
+  },
+  {
+    id: "python",
+    label: "Python (FastAPI)",
+    status: "available",
+    language: "python",
+    languageLabel: "Python",
+    features: ["docker", "github-actions"],
+    aiProviders: ["claude", "codex"]
   }
 ];
 var DEFAULT_TEMPLATE = "typescript";

@@ -66,3 +66,29 @@ jobs:
           npm install
           # laravel-vite-plugin は Laravel スケルトン前提のため、フロントの依存解決まで検証する
           npx vite --version
+
+  python-template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: Build CLI
+        run: npm ci && npm run build && npm link
+      - name: Generate project
+        run: |
+          mkdir -p /tmp/verify && cd /tmp/verify
+          git init -q -b main
+          foundruu init --template python --name verify-app --yes
+      - name: Install & run strict checks (ruff / mypy / pytest)
+        working-directory: /tmp/verify
+        run: |
+          pip install -r requirements-dev.txt
+          ruff check .
+          ruff format --check .
+          mypy
+          python -m pytest

@@ -69,4 +69,29 @@ describe("runInit(非対話)", () => {
   it("存在しないテンプレートはエラーにする", async () => {
     await expect(runInit(cwd, { template: "no-such", yes: true })).rejects.toThrow(/存在しません/);
   });
+
+  it("python テンプレートは FastAPI 一式と Ruff/mypy 設定を展開する", async () => {
+    await runInit(cwd, { template: "python", name: "py-app", yes: true });
+
+    expect(readConfig(cwd)?.template).toBe("python");
+    // 実行/テスト/依存/ツール設定が揃っている
+    for (const f of [
+      "main.py",
+      "tests/test_main.py",
+      "requirements.txt",
+      "requirements-dev.txt",
+      "pyproject.toml",
+    ]) {
+      expect(fs.existsSync(path.join(cwd, f)), `${f} が生成されていない`).toBe(true);
+    }
+    // projectName が埋め込まれ、Ruff/mypy が設定されている
+    expect(fs.readFileSync(path.join(cwd, "main.py"), "utf8")).toContain("py-app");
+    const pyproject = fs.readFileSync(path.join(cwd, "pyproject.toml"), "utf8");
+    expect(pyproject).toContain("[tool.ruff]");
+    expect(pyproject).toContain("[tool.mypy]");
+    // AI チェックリストが npm ではなく Python のコマンドになっている
+    const claude = fs.readFileSync(path.join(cwd, "CLAUDE.md"), "utf8");
+    expect(claude).toContain("ruff check");
+    expect(claude).not.toContain("npm run typecheck");
+  });
 });
