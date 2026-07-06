@@ -1,0 +1,13 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  compatibilityDate: '2026-01-01',
+  modules: ['@nuxt/eslint'],
+  devtools: { enabled: true },
+  eslint: {
+    config: {
+      // 整形は Prettier に一本化するため、Prettier 併用時は stylistic を無効にする
+      // （eslint-config-prettier は @stylistic ルールを完全には無効化できないため、ここで切る）
+      stylistic: {{#if (hasFeature "prettier")}}false{{else}}true{{/if}},
+    },
+  },
+})
