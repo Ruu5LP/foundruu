@@ -3,6 +3,7 @@ action
 coverage
 node_modules
 assets
+.ai
 plugins
 vscode-extension
 package-lock.json

@@ -13,6 +13,7 @@
   - `main.py` / `tests/test_main.py`（FastAPI + `TestClient`）、`requirements.txt` / `requirements-dev.txt`、Python 向け `.gitignore`、`docs/SETUP.md` を生成
   - Docker（`python:3.14-slim` + uvicorn）と GitHub Actions（`ruff check` / `ruff format --check` / `mypy` / `pytest`）に対応。生成物が自身の厳格チェックを緑で通過することを確認
   - AI 向けチェックリスト（CLAUDE.md / CODEX.md）に Python 用コマンドを追加。コーディング規約の「自動チェックの範囲」に Python を追記
+- `workflow install`（`init` 経由含む）で、Prettier を使っているプロジェクトには `.prettierignore` に `.ai` を自動追記するようにした。管理対象の `.ai/` がローカル整形でハッシュ変化し、`foundruu update` にユーザー編集と誤検知されるのを防ぐ（`.prettierrc*` / `prettier.config.*` / `package.json` の `prettier` キーで使用を判定。未使用時は何も作らない）
 
 ### Changed
 

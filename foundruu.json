@@ -1,0 +1,20 @@
+{
+  "version": "0.11.0",
+  "workflow": {
+    "version": "0.11.0",
+    "installedAt": "2026-07-06T23:02:25.951Z",
+    "files": {
+      ".ai/prompts/session-workflow.md": "75992181cd35e6a8addaa98154de3a96f869b8564bab168668077a2eb1f78e59",
+      ".ai/templates/session/design.md": "545ff55bf149665972080b0e67034b59c05baec44b79ccdb702e9521ba364bf5",
+      ".ai/templates/session/questions.md": "02f688cc9bbea05aeddd0986ffdab0c8c3723fe8a1d6cd15b1e12fbd84694f6e",
+      ".ai/templates/session/requirements.md": "b62fe280f4716e7d9fd6e2b4c3a77ebc1feb477a073eb73eeca3d61aeafc308a",
+      ".ai/templates/session/summary.md": "9bf41d2b5e3d26dd51f0f5a5bd051bd8f985cf870b34d00f051e0f83a5079466",
+      ".ai/templates/session/tasks.md": "8bcb72663c30202beaee804a27e683d7549320672db033c33954c564ba439304",
+      ".ai/templates/session/test.md": "afa84ef3680781b1f9012eaed45ca95d6caceca873b6641243b0dc98258724de",
+      ".ai/workflows/bugfix.md": "c5f30ddf6e8839a284276f2b52cb1587b6f1ed62cadfb692331eb428da2dfeb6",
+      ".ai/workflows/development.md": "8a33f1ef3865ae26dab50950316af05ed24d41d195a1227944f2030445331aaf",
+      ".ai/workflows/feature.md": "7ea1beda5a8c7eb26692969705801edef9bb79b4f8ba4db4b09f505272adf120",
+      ".ai/workflows/review.md": "0bdfd3ed897f45358e9f8816cf7ad27fd1abcc96f9695d190da4c4282d9c9861"
+    }
+  }
+}
