@@ -6,6 +6,8 @@
  *   - 同梱の .ai/ ファイル一式が cwd に書き込まれる
  *   - 導入時ハッシュを foundruu.json の workflow.files に記録する(update の編集検出用)
  *   - .gitignore に .ai/sessions/ を追加し、二度目は重複させない(冪等)
+ *   - Prettier 使用時は .prettierignore に .ai を追加する(update のハッシュ誤検知回避)
+ *   - Prettier 未使用時は .prettierignore を作らない
  *   - overwrite=false では既存ファイルを壊さない
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -39,6 +41,27 @@ describe("installWorkflow", () => {
     const gitignore = fs.readFileSync(path.join(cwd, ".gitignore"), "utf8");
     const hits = gitignore.split(/\r?\n/).filter((l) => l === ".ai/sessions/");
     expect(hits.length).toBe(1);
+  });
+
+  it("Prettier 使用時は .prettierignore に .ai を追加し、二度目は重複させない", () => {
+    fs.writeFileSync(path.join(cwd, ".prettierrc"), "{}");
+    installWorkflow(cwd);
+    installWorkflow(cwd);
+    const ignore = fs.readFileSync(path.join(cwd, ".prettierignore"), "utf8");
+    const hits = ignore.split(/\r?\n/).filter((l) => l === ".ai");
+    expect(hits.length).toBe(1);
+  });
+
+  it("package.json の prettier キーだけでも .prettierignore に .ai を追加する", () => {
+    fs.writeFileSync(path.join(cwd, "package.json"), JSON.stringify({ prettier: {} }));
+    installWorkflow(cwd);
+    const ignore = fs.readFileSync(path.join(cwd, ".prettierignore"), "utf8");
+    expect(ignore.split(/\r?\n/)).toContain(".ai");
+  });
+
+  it("Prettier 未使用時は .prettierignore を作らない", () => {
+    installWorkflow(cwd);
+    expect(fs.existsSync(path.join(cwd, ".prettierignore"))).toBe(false);
   });
 
   it("overwrite=false では既存のユーザー編集を保持する", () => {

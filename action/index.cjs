@@ -6238,20 +6238,58 @@ function neutralContext(cwd) {
     year: (/* @__PURE__ */ new Date()).getFullYear()
   };
 }
-function ensureGitignoreEntry(cwd) {
-  const file2 = import_path5.default.join(cwd, ".gitignore");
+function appendIgnoreLine(file2, entry) {
   const current = import_fs5.default.existsSync(file2) ? import_fs5.default.readFileSync(file2, "utf8") : "";
-  if (current.split(/\r?\n/).includes(GITIGNORE_ENTRY)) return;
+  if (current.split(/\r?\n/).includes(entry)) return false;
   const next = current.length && !current.endsWith("\n") ? current + "\n" : current;
-  import_fs5.default.writeFileSync(file2, `${next}${GITIGNORE_ENTRY}
+  import_fs5.default.writeFileSync(file2, `${next}${entry}
 `);
-  log.step(`.gitignore \u306B ${GITIGNORE_ENTRY} \u3092\u8FFD\u52A0\u3057\u307E\u3057\u305F`);
+  return true;
+}
+function ensureGitignoreEntry(cwd) {
+  if (appendIgnoreLine(import_path5.default.join(cwd, ".gitignore"), GITIGNORE_ENTRY)) {
+    log.step(`.gitignore \u306B ${GITIGNORE_ENTRY} \u3092\u8FFD\u52A0\u3057\u307E\u3057\u305F`);
+  }
+}
+function usesPrettier(cwd) {
+  const configFiles = [
+    ".prettierrc",
+    ".prettierrc.json",
+    ".prettierrc.json5",
+    ".prettierrc.yaml",
+    ".prettierrc.yml",
+    ".prettierrc.toml",
+    ".prettierrc.js",
+    ".prettierrc.cjs",
+    ".prettierrc.mjs",
+    "prettier.config.js",
+    "prettier.config.cjs",
+    "prettier.config.mjs",
+    ".prettierignore"
+  ];
+  if (configFiles.some((f) => import_fs5.default.existsSync(import_path5.default.join(cwd, f)))) return true;
+  const pkgPath = import_path5.default.join(cwd, "package.json");
+  if (import_fs5.default.existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(import_fs5.default.readFileSync(pkgPath, "utf8"));
+      if (pkg.prettier !== void 0) return true;
+    } catch {
+    }
+  }
+  return false;
+}
+function ensurePrettierIgnoreEntry(cwd) {
+  if (!usesPrettier(cwd)) return;
+  if (appendIgnoreLine(import_path5.default.join(cwd, ".prettierignore"), PRETTIER_IGNORE_ENTRY)) {
+    log.step(`.prettierignore \u306B ${PRETTIER_IGNORE_ENTRY} \u3092\u8FFD\u52A0\u3057\u307E\u3057\u305F`);
+  }
 }
 function installWorkflow(cwd, options = {}) {
   const result = copyTree(workflowRoot(), cwd, neutralContext(cwd), {
     overwrite: options.overwrite ?? false
   });
   ensureGitignoreEntry(cwd);
+  ensurePrettierIgnoreEntry(cwd);
   for (const file2 of result.written) {
     log.step(`\u66F8\u304D\u8FBC\u307F: ${import_path5.default.relative(cwd, file2)}`);
   }
@@ -6270,7 +6308,7 @@ function installWorkflow(cwd, options = {}) {
   writeConfig(cwd, config2);
   log.success(`Workflow \u3092\u5C0E\u5165\u3057\u307E\u3057\u305F\uFF08${result.written.length}\u30D5\u30A1\u30A4\u30EB\uFF09`);
 }
-var import_fs5, import_path5, GITIGNORE_ENTRY;
+var import_fs5, import_path5, GITIGNORE_ENTRY, PRETTIER_IGNORE_ENTRY;
 var init_workflow = __esm({
   "src/commands/workflow.ts"() {
     "use strict";
@@ -6282,6 +6320,7 @@ var init_workflow = __esm({
     init_logger();
     init_sync();
     GITIGNORE_ENTRY = ".ai/sessions/";
+    PRETTIER_IGNORE_ENTRY = ".ai";
   }
 });
 
