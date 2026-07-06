@@ -35,6 +35,22 @@ npm install && npm run build && npm link
 | `foundruu cloud push`                                                 | 最新の deep レポートを [foundruu-cloud](https://github.com/Ruu5LP/foundruu-cloud) へ送信           |
 | `foundruu --help` / `--version`                                       | ヘルプ / バージョン                                                                                |
 
+## テンプレート
+
+| ID              | 内容               |
+| --------------- | ------------------ |
+| `typescript`    | TypeScript（既定） |
+| `node-react`    | Node.js + React    |
+| `nextjs`        | Next.js            |
+| `nuxt`          | Nuxt               |
+| `laravel-react` | Laravel + React    |
+| `laravel-vue`   | Laravel + Vue      |
+| `python`        | Python (FastAPI)   |
+
+全テンプレートに、コーディング規約と対応した厳格な機械チェック（ESLint `strictTypeChecked` /
+PHPStan level 8 / Ruff + mypy strict など）と、それを CI で強制する GitHub Actions
+（typecheck / lint / 静的解析 / テスト / 依存監査）が同梱されます。
+
 ## 利用フロー
 
 ```bash
@@ -180,7 +196,7 @@ npm install や TypeScript ビルドは走りません(`node` で即実行)。`@
 ## 開発
 
 ```bash
-npm run dev -- doctor   # ts-node で実行
+npm run dev -- doctor   # tsx で実行
 npm test                # vitest
 npm run test:coverage   # カバレッジ計測（coverage/ に HTML/lcov 出力）
 npm run typecheck
