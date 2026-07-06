@@ -5,9 +5,14 @@
 // リンターが緑でも規約違反は不可。
 import withNuxt from './.nuxt/eslint.config.mjs'
 import tseslint from 'typescript-eslint'
+{{#if (hasFeature "prettier")}}
+import eslintConfigPrettier from 'eslint-config-prettier'
+{{/if}}
 
 // 型情報を使う厳格ルールは .ts / .tsx にスコープする。
-// （.vue の型認識リンティングはコスト・相性の問題が大きいため対象外にしている）
+// （.vue の型認識リンティングはコスト・相性の問題が大きいため対象外。
+//   このため await 漏れ検出などの型認識チェックは .vue では効かない。
+//   async ロジックは composable（.ts）へ寄せること。詳細は coding-standard.md 参照）
 const typeChecked = tseslint.config({
   files: ['**/*.ts', '**/*.tsx'],
   extends: [tseslint.configs.strictTypeChecked, tseslint.configs.stylisticTypeChecked],
@@ -18,7 +23,6 @@ const typeChecked = tseslint.config({
     },
   },
   rules: {
-    '@typescript-eslint/no-non-null-assertion': 'error',
     '@typescript-eslint/no-unnecessary-type-assertion': 'error',
     // 真偽値のプレフィクス統一（型情報が必要なため型認識ブロックで有効化）
     '@typescript-eslint/naming-convention': [
@@ -47,7 +51,7 @@ export default withNuxt({
     'prefer-const': 'error',
     'no-param-reassign': ['error', { props: true }],
 
-    // --- AI にありがちな「無理やり型を合わせる」を禁止 ---
+    // --- AI にありがちな「無理やり型を合わせる」を禁止（.vue にも効く構文ルール）---
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-non-null-assertion': 'error',
     '@typescript-eslint/consistent-type-imports': 'error',
@@ -62,7 +66,7 @@ export default withNuxt({
       { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
     ],
 
-    // --- ファイル肥大化・複雑度を抑える ---
+    // --- ファイル肥大化・複雑度を抑える（--max-warnings 0 で実質エラー扱い）---
     'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
     'max-lines-per-function': ['warn', { max: 80, skipBlankLines: true, skipComments: true }],
     'max-depth': ['error', 3],
@@ -80,4 +84,9 @@ export default withNuxt({
       { selector: 'typeLike', format: ['PascalCase'] },
     ],
   },
-}).append(...typeChecked)
+})
+  .append(...typeChecked)
+{{#if (hasFeature "prettier")}}
+  // Prettier と競合する整形ルールを無効化（整形は Prettier に一本化）。必ず末尾に置く。
+  .append(eslintConfigPrettier)
+{{/if}}

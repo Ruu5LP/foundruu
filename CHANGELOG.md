@@ -14,6 +14,16 @@
   - **Nuxt**: `@nuxt/eslint`（Vue + TypeScript 対応）を標準同梱し、同等の厳格ルールを適用。さらに `.ts` / `.tsx` には型情報を使う `strictTypeChecked` + `stylisticTypeChecked`（`no-floating-promises` 等の型フロー系）をスコープ適用し、TS/Next と同水準に。`lint` / `typecheck` スクリプトを追加
   - **Laravel**: Larastan/PHPStan を追加（`phpstan.neon`、`level: 8` を最低ライン）。`composer lint` / `analyse` スクリプトと、AI チェックリストへの反映を追加
 
+### Fixed
+
+- 上記コーディングルール強化の穴を、厳格レビュー観点で追加修正
+  - **`typecheck` スクリプト欠落**: TypeScript / Next.js の `package.json` に `typecheck`（`tsc --noEmit`）が無く、AI チェックリストの「`npm run typecheck` を実行」が `Missing script` で失敗していた。両テンプレートに追加
+  - **ファイル肥大化・複雑度チェックが実質無効**: `max-lines` / `complexity` 等を `warn` にしていたが `lint` は `eslint .` のみで、警告が出ても緑になっていた。`lint` を `--max-warnings 0` に変更し、チェックリスト文言も「警告・エラーがゼロ」に更新
+  - **Prettier と整形ルールの競合**: `stylisticTypeChecked` と Prettier が衝突していた。`eslint-config-prettier` を導入し、Prettier 併用時のみ ESLint 設定末尾で整形ルールを無効化（TypeScript / Nuxt 両方、feature 選択に応じてテンプレート化）
+  - **Nuxt `.vue` の型認識チェック限界を明記**: `.vue` では `await` 漏れ検出等が効かないため、async ロジックは composable（`.ts`）へ寄せる旨を規約に追記
+  - **自動チェックの範囲を明文化**: 機械強制される項目と、レビューで見る項目（命名の動詞使い分け・Python 等ツールチェーン未同梱言語）の境界を規約に追加
+  - **ESLint のメジャーバージョン統一**: feature 側 `eslint` ^10 と Nuxt 側 ^9 の食い違いを ^9 に統一（`typescript-eslint` ^8 の対応範囲に合わせる）
+
 ## [0.11.0] - 2026-07-05
 
 ### Changed

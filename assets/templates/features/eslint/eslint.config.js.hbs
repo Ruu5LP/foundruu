@@ -1,11 +1,17 @@
 // @ts-check
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
+{{#if (hasFeature "prettier")}}
+import eslintConfigPrettier from 'eslint-config-prettier'
+{{/if}}
 
 /**
  * FoundRuu 標準 ESLint 設定。
  * 言語標準の `recommended` を下限とし、コーディング規約（.ai/company/coding-standard.md）を
  * 機械で担保するための厳格ルールを重ねている。リンターが緑でも規約違反は不可。
+ *
+ * ファイル肥大化・複雑度は `warn` にしているが、`lint` スクリプトは
+ * `--max-warnings 0` で実行するため、警告も CI・チェックリスト上はエラー扱いになる。
  */
 export default tseslint.config(
   {
@@ -64,7 +70,7 @@ export default tseslint.config(
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
 
-      // --- ファイル肥大化・複雑度を抑える ---
+      // --- ファイル肥大化・複雑度を抑える（--max-warnings 0 で実質エラー扱い）---
       'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
       'max-lines-per-function': ['warn', { max: 80, skipBlankLines: true, skipComments: true }],
       'max-depth': ['error', 3],
@@ -95,4 +101,8 @@ export default tseslint.config(
     files: ['**/*.{js,cjs,mjs}'],
     extends: [tseslint.configs.disableTypeChecked],
   },
+{{#if (hasFeature "prettier")}}
+  // Prettier と競合する整形ルールを無効化（整形は Prettier に一本化）。必ず末尾に置く。
+  eslintConfigPrettier,
+{{/if}}
 )

@@ -44,10 +44,10 @@
 
 ### 実装後チェック（必須）
 {{#if (hasFeature "eslint")}}
-- `npm run lint` でエラーがないこと
+- `npm run lint` で警告・エラーがゼロであること（`--max-warnings 0`）
 {{/if}}
 {{#if (eq language "nuxt")}}
-- `npm run lint` でエラーがないこと
+- `npm run lint` で警告・エラーがゼロであること（`--max-warnings 0`）
 {{/if}}
 {{#if (hasFeature "vitest")}}
 - `npm test` で全テストが通ること
