@@ -2,12 +2,17 @@ name: Template Verify
 
 # テンプレートが「生成できる」だけでなく「実際にビルドできる」ことを検証する。
 # 依存を常に最新へ保つ方針のため、上流の破壊的変更を週次で検知する。
+# テンプレートに触れる PR ではマージ前にも検証する（paths フィルタで対象 PR のみ）。
 on:
   schedule:
     - cron: "0 21 * * 0" # 毎週月曜 6:00 JST
   workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - "assets/templates/**"
+      - "src/registry/**"
+  pull_request:
     paths:
       - "assets/templates/**"
       - "src/registry/**"

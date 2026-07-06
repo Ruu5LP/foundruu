@@ -6280,7 +6280,12 @@ function usesPrettier(cwd) {
 }
 function ensurePrettierIgnoreEntry(cwd) {
   if (!usesPrettier(cwd)) return;
-  if (appendIgnoreLine(import_path5.default.join(cwd, ".prettierignore"), PRETTIER_IGNORE_ENTRY)) {
+  const file2 = import_path5.default.join(cwd, ".prettierignore");
+  if (import_fs5.default.existsSync(file2)) {
+    const lines = import_fs5.default.readFileSync(file2, "utf8").split(/\r?\n/);
+    if (lines.some((l) => l === ".ai" || l === ".ai/")) return;
+  }
+  if (appendIgnoreLine(file2, PRETTIER_IGNORE_ENTRY)) {
     log.step(`.prettierignore \u306B ${PRETTIER_IGNORE_ENTRY} \u3092\u8FFD\u52A0\u3057\u307E\u3057\u305F`);
   }
 }

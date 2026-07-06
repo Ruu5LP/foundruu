@@ -59,6 +59,17 @@ describe("installWorkflow", () => {
     expect(ignore.split(/\r?\n/)).toContain(".ai");
   });
 
+  it("既に .ai/ が無視されていれば .ai を二重登録しない", () => {
+    fs.writeFileSync(path.join(cwd, ".prettierrc"), "{}");
+    fs.writeFileSync(path.join(cwd, ".prettierignore"), "dist/\n.ai/\n");
+    installWorkflow(cwd);
+    const lines = fs
+      .readFileSync(path.join(cwd, ".prettierignore"), "utf8")
+      .split(/\r?\n/)
+      .filter((l) => l === ".ai" || l === ".ai/");
+    expect(lines).toEqual([".ai/"]);
+  });
+
   it("Prettier 未使用時は .prettierignore を作らない", () => {
     installWorkflow(cwd);
     expect(fs.existsSync(path.join(cwd, ".prettierignore"))).toBe(false);

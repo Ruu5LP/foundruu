@@ -74,7 +74,13 @@ function usesPrettier(cwd: string): boolean {
  */
 function ensurePrettierIgnoreEntry(cwd: string): void {
   if (!usesPrettier(cwd)) return;
-  if (appendIgnoreLine(path.join(cwd, ".prettierignore"), PRETTIER_IGNORE_ENTRY)) {
+  const file = path.join(cwd, ".prettierignore");
+  // 既に .ai/ 等で無視済みなら二重登録しない（prettier 機能テンプレートが .ai/ を同梱するため）
+  if (fs.existsSync(file)) {
+    const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+    if (lines.some((l) => l === ".ai" || l === ".ai/")) return;
+  }
+  if (appendIgnoreLine(file, PRETTIER_IGNORE_ENTRY)) {
     log.step(`.prettierignore に ${PRETTIER_IGNORE_ENTRY} を追加しました`);
   }
 }

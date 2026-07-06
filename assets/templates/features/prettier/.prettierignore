@@ -1,3 +1,5 @@
 dist/
 node_modules/
 coverage/
+# FoundRuu 管理ファイル（整形するとハッシュが変わり foundruu update が誤検知する）
+.ai/
