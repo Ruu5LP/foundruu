@@ -35,4 +35,5 @@
 
 - 動作確認済みの単位でコミットする
 - 途中状態（コンパイルエラーあり等）でコミットしない
-- lint / typecheck が通ってからコミットする
+- コミット前に、その言語のチェックを通す（例: TS 系 `npm run lint`（`--max-warnings 0`）+ `npm run typecheck` /
+  Laravel `composer lint` + `composer analyse`）

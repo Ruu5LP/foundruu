@@ -4,6 +4,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.9.0"
   }
 }
