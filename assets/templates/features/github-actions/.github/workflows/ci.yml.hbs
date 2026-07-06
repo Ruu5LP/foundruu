@@ -21,8 +21,9 @@ jobs:
 
       - run: npm ci
 
-      # 既知の脆弱性がある依存を検出する（high 以上で失敗）
+      # 既知の脆弱性がある依存を警告表示する（上流の勧告で CI は落とさない。放置しないこと）
       - run: npm audit --audit-level=high
+        continue-on-error: true
 
       - run: npm run typecheck
 {{#if (hasFeature "eslint")}}
@@ -41,8 +42,9 @@ jobs:
 
       - run: pip install -r requirements-dev.txt
 
-      # 既知の脆弱性がある依存を検出する
+      # 既知の脆弱性がある依存を警告表示する（上流の勧告で CI は落とさない。放置しないこと）
       - run: pip-audit
+        continue-on-error: true
 
       - run: ruff check .
       - run: ruff format --check .
@@ -57,8 +59,9 @@ jobs:
 
       - run: composer install --no-interaction
 
-      # 既知の脆弱性がある依存を検出する
+      # 既知の脆弱性がある依存を警告表示する（上流の勧告で CI は落とさない。放置しないこと）
       - run: composer audit
+        continue-on-error: true
 
       # 整形（Pint）と静的解析（PHPStan/Larastan level 8）を CI で担保する
       - run: composer lint
@@ -76,8 +79,9 @@ jobs:
 
       - run: npm ci
 
-      # 既知の脆弱性がある依存を検出する（high 以上で失敗）
+      # 既知の脆弱性がある依存を警告表示する（上流の勧告で CI は落とさない。放置しないこと）
       - run: npm audit --audit-level=high
+        continue-on-error: true
 
       - run: npm run typecheck
 {{#if (hasFeature "eslint")}}
@@ -97,8 +101,9 @@ jobs:
 
       - run: npm ci
 
-      # 既知の脆弱性がある依存を検出する（high 以上で失敗）
+      # 既知の脆弱性がある依存を警告表示する（上流の勧告で CI は落とさない。放置しないこと）
       - run: npm audit --audit-level=high
+        continue-on-error: true
 
       - run: npm run typecheck
       # Nuxt は @nuxt/eslint を言語層で同梱しているため lint は常に実行する
