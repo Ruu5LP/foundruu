@@ -69,6 +69,15 @@ export const templates: TemplateDefinition[] = [
     features: ["prettier", "github-actions"],
     aiProviders: ["claude", "codex"],
   },
+  {
+    id: "python",
+    label: "Python (FastAPI)",
+    status: "available",
+    language: "python",
+    languageLabel: "Python",
+    features: ["docker", "github-actions"],
+    aiProviders: ["claude", "codex"],
+  },
 ];
 
 export const DEFAULT_TEMPLATE = "typescript";

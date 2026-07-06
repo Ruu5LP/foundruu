@@ -56,7 +56,14 @@
 - `composer lint`（Pint）で整形崩れがないこと
 - `composer analyse`（PHPStan/Larastan）でエラーがないこと
 {{else}}
+{{#if (eq language "python")}}
+- `ruff check .` でエラーがないこと（`ruff check --fix .` で自動修正）
+- `ruff format --check .` で整形崩れがないこと
+- `mypy` で型エラーがないこと
+- `pytest` で全テストが通ること
+{{else}}
 - `npm run typecheck` でエラーがないこと
+{{/if}}
 {{/if}}
 
 ---

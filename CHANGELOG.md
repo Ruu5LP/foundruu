@@ -6,6 +6,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Python を正式サポート**（テンプレート `python`、FastAPI ベース）。他言語と同水準の厳格な機械チェックを同梱
+  - `pyproject.toml`: Ruff（lint + format）と mypy（`strict` + `disallow_any_explicit`）を設定。`Any` 禁止・命名規約（`snake_case` 等）・型注釈必須・未使用コード検出などをコーディング規約と対応付けて有効化。日本語コメントの全角記号は誤検知しないよう `RUF001-003` のみ除外
+  - `main.py` / `tests/test_main.py`（FastAPI + `TestClient`）、`requirements.txt` / `requirements-dev.txt`、Python 向け `.gitignore`、`docs/SETUP.md` を生成
+  - Docker（`python:3.14-slim` + uvicorn）と GitHub Actions（`ruff check` / `ruff format --check` / `mypy` / `pytest`）に対応。生成物が自身の厳格チェックを緑で通過することを確認
+  - AI 向けチェックリスト（CLAUDE.md / CODEX.md）に Python 用コマンドを追加。コーディング規約の「自動チェックの範囲」に Python を追記
+
 ### Changed
 
 - 配布するコーディングルールを大幅に強化。「言語標準リンター任せ」で緩かった規約を、全配布言語で同水準に引き上げた
