@@ -70,6 +70,35 @@ describe("runInit(非対話)", () => {
     await expect(runInit(cwd, { template: "no-such", yes: true })).rejects.toThrow(/存在しません/);
   });
 
+  it("既存プロジェクトへの後入れでは package.json の既存値を維持する", async () => {
+    // typescript テンプレートは engines.node ">=20.0.0" / scripts.dev "tsx src/index.ts" を持つ
+    fs.writeFileSync(
+      path.join(cwd, "package.json"),
+      JSON.stringify({
+        name: "existing-app",
+        engines: { node: ">=22" },
+        scripts: { dev: "tsx src/cli.ts" },
+      })
+    );
+    await runInit(cwd, { template: "typescript", name: "existing-app", yes: true });
+
+    const pkg = JSON.parse(fs.readFileSync(path.join(cwd, "package.json"), "utf8"));
+    // 既存値はテンプレートで上書きされない
+    expect(pkg.engines.node).toBe(">=22");
+    expect(pkg.scripts.dev).toBe("tsx src/cli.ts");
+    // テンプレートの新規キーは追加される
+    expect(pkg.scripts.typecheck).toBe("tsc --noEmit");
+    expect(pkg.scripts.test).toBe("vitest");
+  });
+
+  it("新規プロジェクトではレイヤー間の上書き(後勝ち)が機能する", async () => {
+    // node-react は typescript(build: "tsc") の上に react(build: "tsc --noEmit && vite build") を重ねる
+    await runInit(cwd, { template: "node-react", name: "fresh-app", yes: true });
+
+    const pkg = JSON.parse(fs.readFileSync(path.join(cwd, "package.json"), "utf8"));
+    expect(pkg.scripts.build).toBe("tsc --noEmit && vite build");
+  });
+
   it("python テンプレートは FastAPI 一式と Ruff/mypy 設定を展開する", async () => {
     await runInit(cwd, { template: "python", name: "py-app", yes: true });
 

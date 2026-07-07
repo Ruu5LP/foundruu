@@ -35,6 +35,11 @@ function createHandlebars(ctx: TemplateContext): typeof Handlebars {
   return hbs as typeof Handlebars;
 }
 
+/**
+ * target へ source(パッチ)をディープマージする。値が重なるキーは後のレイヤー(source)が
+ * 勝つ。テンプレートのレイヤー合成(base → language → features)は意図的な上書きを含むため
+ * 後勝ちが正しい。init 開始前から存在していた値の保護は呼び出し側(init)が行う。
+ */
 function deepMerge(
   target: Record<string, unknown>,
   source: Record<string, unknown>

@@ -58,6 +58,20 @@ describe("copyTree", () => {
     expect(merged.scripts).toEqual({ build: "tsc", test: "vitest" });
   });
 
+  it(".patch のマージは後勝ち(レイヤー合成の意図的な上書きを許容する)", () => {
+    fs.writeFileSync(
+      path.join(dest, "package.json"),
+      JSON.stringify({ scripts: { build: "tsc" } })
+    );
+    fs.writeFileSync(
+      path.join(src, "package.json.patch"),
+      JSON.stringify({ scripts: { build: "tsc --noEmit && vite build" } })
+    );
+    copyTree(src, dest, ctx);
+    const merged = JSON.parse(fs.readFileSync(path.join(dest, "package.json"), "utf8"));
+    expect(merged.scripts.build).toBe("tsc --noEmit && vite build");
+  });
+
   it("テキストの .patch は末尾へ追記し、重複追記しない", () => {
     fs.writeFileSync(path.join(dest, ".env.example"), "PORT=3000\n");
     fs.writeFileSync(path.join(src, ".env.example.patch"), "APP_NAME={{projectName}}\n");

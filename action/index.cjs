@@ -42992,6 +42992,39 @@ function resolveFeatures(spec, defaults) {
   }
   return requested;
 }
+function collectJsonPatchTargets(layerDir, destDir) {
+  const targets = [];
+  const walk = (rel) => {
+    for (const entry of import_fs6.default.readdirSync(import_path6.default.join(layerDir, rel), { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        walk(import_path6.default.join(rel, entry.name));
+      } else if (entry.name.endsWith(".json.patch")) {
+        targets.push(import_path6.default.join(destDir, rel, entry.name.replace(/\.patch$/, "")));
+      }
+    }
+  };
+  walk("");
+  return targets;
+}
+function restoreOriginalValues(current, original, preserved, file2, prefix = "") {
+  for (const [key, originalValue] of Object.entries(original)) {
+    const keyPath = prefix ? `${prefix}.${key}` : key;
+    const currentValue = current[key];
+    if (originalValue && typeof originalValue === "object" && !Array.isArray(originalValue) && currentValue && typeof currentValue === "object" && !Array.isArray(currentValue)) {
+      restoreOriginalValues(
+        currentValue,
+        originalValue,
+        preserved,
+        file2,
+        keyPath
+      );
+    } else if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
+    } else if (JSON.stringify(currentValue) !== JSON.stringify(originalValue)) {
+      preserved.push({ file: file2, keyPath, existing: originalValue, incoming: currentValue });
+      current[key] = originalValue;
+    }
+  }
+}
 async function promptMissing(cwd, options) {
   const interactive = process.stdin.isTTY && !options.yes && !options.template;
   if (!interactive) return options;
@@ -43057,14 +43090,39 @@ async function runInit(cwd, rawOptions) {
     import_path6.default.join(root, "ai", "_common"),
     ...template.aiProviders.map((p) => import_path6.default.join(root, "ai", p))
   ];
+  const layerDest = (layer) => layer === import_path6.default.join(root, "ai", "_common") ? import_path6.default.join(cwd, "docs", "ai") : cwd;
+  const originals = /* @__PURE__ */ new Map();
+  for (const layer of layers.filter((l) => import_fs6.default.existsSync(l))) {
+    for (const target of collectJsonPatchTargets(layer, layerDest(layer))) {
+      if (!originals.has(target) && import_fs6.default.existsSync(target)) {
+        originals.set(
+          target,
+          JSON.parse(import_fs6.default.readFileSync(target, "utf8"))
+        );
+      }
+    }
+  }
   for (const layer of layers) {
     if (!import_fs6.default.existsSync(layer)) {
       log.warn(`\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u30EC\u30A4\u30E4\u30FC\u304C\u898B\u3064\u304B\u3089\u306A\u3044\u305F\u3081\u30B9\u30AD\u30C3\u30D7: ${import_path6.default.relative(root, layer)}`);
       continue;
     }
-    const dest = layer === import_path6.default.join(root, "ai", "_common") ? import_path6.default.join(cwd, "docs", "ai") : cwd;
-    const result = copyTree(layer, dest, ctx);
+    const result = copyTree(layer, layerDest(layer), ctx);
     written += result.written.length;
+  }
+  const preserved = [];
+  for (const [file2, original] of originals) {
+    const current = JSON.parse(import_fs6.default.readFileSync(file2, "utf8"));
+    restoreOriginalValues(current, original, preserved, file2);
+    import_fs6.default.writeFileSync(file2, JSON.stringify(current, null, 2) + "\n");
+  }
+  if (preserved.length > 0) {
+    log.warn("\u65E2\u5B58\u306E\u8A2D\u5B9A\u5024\u3092\u7DAD\u6301\u3057\u307E\u3057\u305F\uFF08\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u3068\u7570\u306A\u308B\u7B87\u6240\uFF09:");
+    for (const p of preserved) {
+      log.warn(
+        `  ${import_path6.default.relative(cwd, p.file)} ${p.keyPath}: ${JSON.stringify(p.existing)}\uFF08\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8: ${JSON.stringify(p.incoming)}\uFF09`
+      );
+    }
   }
   installWorkflow(cwd, { overwrite: false });
   const config2 = readConfig(cwd) ?? { version: cliVersion() };
