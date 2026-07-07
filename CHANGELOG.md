@@ -8,6 +8,13 @@
 
 ### Added
 
+- **要件・設計とコードのトレーサビリティ検証**を `doctor --deep` に追加（総合スコアには算入しない情報提供）
+  - 設計 ↔ 差分: 変更ファイルが設計ドキュメント（最新セッションの design.md 優先）に記載されているかを突き合わせ、記載のない変更を警告。`.ai/**`・`**/*.md`・lockfile はデフォルト除外、`.foundruurc` の `doctor.deep.trace.exclude`（glob）で追加除外可能
+  - 要件 ↔ タスク・テスト: `requirements.md` の完了条件を `AC-n:` 形式で書くと、`tasks.md` / `test.md` から参照されていない受け入れ条件を検出。セッションテンプレートに AC-n 形式を導入
+  - `session end` 時に、design.md の恒久的な設計判断を docs/architecture.md 等へ昇格するようリマインドを表示。session-workflow.md にトレーサビリティと昇格ゲートの運用を追記
+
+### Added
+
 - `doctor --deep` の採点観点を `.foundruurc` でカスタマイズできるようにした
   - 全採点ルールに安定 ID（`design.api-io` 等）を付与。`--deep --json` の `failed[].id` で確認できる
   - `doctor.deep.disable` に ID を列挙すると該当観点が採点分母から除外される。未知の ID は無視（フェイルソフト）。カテゴリの全観点を無効化した場合は「未計測」扱い

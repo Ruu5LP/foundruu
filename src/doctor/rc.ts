@@ -14,6 +14,11 @@ export interface FoundruuRc {
     deep?: {
       /** 無効化する採点観点のルールID（例: "design.api-io"）。未知のIDは無視される */
       disable?: string[];
+      /** トレーサビリティ検証の設定 */
+      trace?: {
+        /** 設計との突き合わせから除外するパターン（glob。デフォルト除外に追加される） */
+        exclude?: string[];
+      };
     };
   };
 }

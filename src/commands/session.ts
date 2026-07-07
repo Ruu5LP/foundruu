@@ -1,6 +1,7 @@
 import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import pc from "picocolors";
 import { log } from "../core/logger";
 
 /**
@@ -147,6 +148,15 @@ export function endSession(cwd: string, name?: string): void {
   writeStatus(root, target, status);
   if (readCurrent(root) === target) clearCurrent(root);
   log.success(`セッションを終了しました: ${target}`);
+  // セッションの設計は使い捨てだが、恒久的な設計判断は昇格しないと保守時に参照できなくなる
+  const designFile = path.join(root, ".ai", "sessions", target, "design.md");
+  if (fs.existsSync(designFile) && fs.readFileSync(designFile, "utf8").trim().length > 0) {
+    log.info(
+      pc.dim(
+        "終了前チェック: design.md の恒久的な設計判断（構成・方針の変更）は docs/architecture.md 等へ反映しましたか？"
+      )
+    );
+  }
 }
 
 /** セッションの状態と作業ファイルを表示する。name 省略時は現在のセッション */

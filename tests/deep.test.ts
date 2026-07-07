@@ -5,6 +5,8 @@ import os from "os";
 import path from "path";
 import { runDeepDoctor, scanDocs } from "../src/doctor/deep";
 
+const trace = (report: ReturnType<typeof runDeepDoctor>) => report.trace;
+
 let tmp: string;
 
 const git = (args: string[]) => execFileSync("git", ["-C", tmp, ...args], { stdio: "pipe" });
@@ -58,6 +60,66 @@ describe("scanDocs", () => {
     write(".ai/sessions/.status/s1.json", "{}");
     const docs = scanDocs(tmp);
     expect(docs.get("requirements")?.path).toBe(path.join(".ai/sessions/s1", "requirements.md"));
+  });
+});
+
+describe("トレーサビリティ", () => {
+  it("設計に記載のない変更ファイルを検出し、記載済みは警告しない", () => {
+    write(".ai/sessions/s1/design.md", "## 変更対象\n- `src/a.ts`\n");
+    write("src/a.ts", "export {};\n");
+    write("src/b.ts", "export {};\n");
+    const t = trace(runDeepDoctor(tmp, "main"));
+    expect(t.designPath).toBe(path.join(".ai/sessions/s1", "design.md"));
+    expect(t.undocumented).toEqual(["src/b.ts"]);
+  });
+
+  it("ディレクトリ接頭辞・ファイル名の言及でも記載ありとみなす", () => {
+    write(".ai/sessions/s1/design.md", "## 変更対象\n- src/commands/ 配下\n- deep.ts\n");
+    write("src/commands/foo.ts", "export {};\n");
+    write("src/doctor/deep.ts", "export {};\n");
+    const t = trace(runDeepDoctor(tmp, "main"));
+    expect(t.undocumented).toEqual([]);
+  });
+
+  it("Markdown や .ai/ 配下はデフォルトで突き合わせ対象外", () => {
+    write(".ai/sessions/s1/design.md", "## 変更対象\n- なし\n");
+    write("docs/notes.md", "# メモ");
+    write("README.md", "# readme");
+    const t = trace(runDeepDoctor(tmp, "main"));
+    expect(t.checkedFiles).toBe(0);
+  });
+
+  it("traceExcludes(glob) で追加の除外ができる", () => {
+    write(".ai/sessions/s1/design.md", "## 変更対象\n- なし\n");
+    write("dist/bundle.js", "generated");
+    const before = trace(runDeepDoctor(tmp, "main"));
+    expect(before.undocumented).toEqual(["dist/bundle.js"]);
+    const after = trace(runDeepDoctor(tmp, "main", [], ["dist/**"]));
+    expect(after.checkedFiles).toBe(0);
+  });
+
+  it("設計ドキュメントが無い場合は突き合わせ未実施(designPath なし)", () => {
+    write("src/a.ts", "export {};\n");
+    const t = trace(runDeepDoctor(tmp, "main"));
+    expect(t.designPath).toBeUndefined();
+    expect(t.undocumented).toEqual([]);
+  });
+
+  it("要件の AC-n がタスク・テスト観点から参照されているか検証する", () => {
+    write("docs/requirements.md", "## 完了条件\n- [ ] AC-1: 保存できる\n- [ ] AC-2: 警告が出る\n");
+    write("docs/tasks.md", "## 実装タスク\n- [ ] 保存処理 (AC-1)\n- [ ] 警告表示 (AC-2)\n");
+    write("docs/test.md", "## テスト観点\n- AC-1: 保存の正常系\n");
+    const t = trace(runDeepDoctor(tmp, "main"));
+    expect(t.acceptanceIds).toEqual(["AC-1", "AC-2"]);
+    expect(t.untestedIds).toEqual(["AC-2"]);
+    expect(t.unplannedIds).toEqual([]);
+  });
+
+  it("AC-n が無い場合は空のトレース結果になる", () => {
+    write("docs/requirements.md", "## 目的\n保存機能\n");
+    const t = trace(runDeepDoctor(tmp, "main"));
+    expect(t.acceptanceIds).toEqual([]);
+    expect(t.untestedIds).toEqual([]);
   });
 });
 

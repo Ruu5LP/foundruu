@@ -88,6 +88,13 @@ foundruu/
 - **GitHub Actions**: `foundruu doctor --json` の exit code / JSON 出力を CI で消費
 - **VSCode Extension / MCP Server**: `src/commands` はロジックを `core` / `doctor` に委譲しているため、同じ関数を Extension / MCP から呼べる
 
+### Doctor --deep のトレーサビリティ
+
+- ドキュメント単体のキーワード採点に加え、要件・設計とコードの紐づけを検証する
+  （設計 ↔ git diff の突き合わせ、AC-n による要件 ↔ タスク・テストの参照検証）
+- 総合スコアには算入しない情報提供とし、除外は `.foundruurc` の `doctor.deep.trace.exclude` で設定する
+- セッションの design.md は使い捨てのため、恒久的な設計判断は `session end` 時のリマインドに従い本ファイルへ昇格する
+
 ## 変更対象の見つけ方
 
 機能を追加・変更するときの変更対象ファイルの目安:

@@ -125,6 +125,30 @@ Docker / GitHub Actions / AI Rules / Workflow / Prompt / foundruu.json
 例えば CLI ツールやライブラリでは、Web アプリ前提の `design.api-io`（API入出力）や
 `design.rollback`（ロールバック方針）を外すと、スコアが実態に即したものになります。
 
+### トレーサビリティ（要件・設計とコードの紐づけ）
+
+`doctor --deep` はドキュメント単体の採点に加えて、要件・設計と実際のコードの対応も検証します:
+
+- **設計 ↔ 差分**: 変更されたファイルが設計ドキュメント（最新セッションの `design.md` を優先）に
+  記載されているかを突き合わせ、記載のない変更ファイルを警告します。`.ai/**`・`**/*.md`・
+  lockfile はデフォルトで対象外。生成物などは `doctor.deep.trace.exclude` に glob で追加除外できます:
+
+```json
+{
+  "doctor": {
+    "deep": {
+      "trace": { "exclude": ["action/index.cjs", "dist/**"] }
+    }
+  }
+}
+```
+
+- **要件 ↔ タスク・テスト**: `requirements.md` の完了条件を `AC-1:` のような ID 付きで書くと、
+  `tasks.md` / `test.md` から参照されていない受け入れ条件を検出します。
+
+いずれも情報提供であり、総合スコアには算入されません。また `session end` 時には、セッションの
+`design.md` に書いた恒久的な設計判断を `docs/architecture.md` 等へ昇格するようリマインドします。
+
 ## MCP Server として使う
 
 Claude Code 等の MCP クライアントに登録すると、AIエージェントが doctor / session / workflow / update をツールとして直接呼べます:

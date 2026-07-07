@@ -6570,17 +6570,63 @@ function git(cwd, args) {
 function collectDiff(cwd, since) {
   const base = git(cwd, ["merge-base", since, "HEAD"]).trim();
   const numstat = git(cwd, ["diff", "--numstat", base]);
-  let files = 0;
   let insertions = 0;
   let deletions = 0;
+  const changedFiles = [];
   for (const line of numstat.split("\n")) {
-    const m = line.match(/^(\d+|-)\t(\d+|-)\t/);
+    const m = line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/);
     if (!m) continue;
-    files += 1;
+    changedFiles.push(m[3]);
     if (m[1] !== "-") insertions += Number(m[1]);
     if (m[2] !== "-") deletions += Number(m[2]);
   }
-  return { files, insertions, deletions };
+  const files = changedFiles.length;
+  const untracked = git(cwd, ["ls-files", "--others", "--exclude-standard"]).split("\n").filter((f) => f.length > 0);
+  return { diff: { files, insertions, deletions }, changedFiles: [...changedFiles, ...untracked] };
+}
+function globToRegExp(glob) {
+  const esc3 = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*\//g, "<DIRS>").replace(/\*\*/g, "<ANY>").replace(/\*/g, "[^/]*").replace(/<DIRS>/g, "(?:.*/)?").replace(/<ANY>/g, ".*");
+  return new RegExp(`^${esc3}$`);
+}
+function mentionedInDesign(file2, designContent) {
+  if (designContent.includes(file2)) return true;
+  const segments = file2.split("/");
+  for (let i = 2; i < segments.length; i++) {
+    if (designContent.includes(segments.slice(0, i).join("/") + "/")) return true;
+  }
+  return designContent.includes(segments[segments.length - 1]);
+}
+function latestSessionDir(cwd) {
+  const sessionsDir = import_path10.default.join(cwd, ".ai", "sessions");
+  if (!import_fs10.default.existsSync(sessionsDir)) return void 0;
+  const sessions = import_fs10.default.readdirSync(sessionsDir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith(".")).map((e) => ({ name: e.name, mtime: import_fs10.default.statSync(import_path10.default.join(sessionsDir, e.name)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
+  return sessions.length > 0 ? import_path10.default.join(".ai", "sessions", sessions[0].name) : void 0;
+}
+function collectTrace(cwd, changedFiles, docs, excludes = []) {
+  const patterns = [...DEFAULT_TRACE_EXCLUDES, ...excludes].map(globToRegExp);
+  const targets = changedFiles.filter((f) => !patterns.some((p) => p.test(f)));
+  let design;
+  const session2 = latestSessionDir(cwd);
+  if (session2 !== void 0) {
+    const p = import_path10.default.join(session2, "design.md");
+    if (import_fs10.default.existsSync(import_path10.default.join(cwd, p))) {
+      const content = import_fs10.default.readFileSync(import_path10.default.join(cwd, p), "utf8");
+      if (content.trim().length > 0) design = { path: p, content };
+    }
+  }
+  design ??= docs.get("design");
+  const undocumented = design !== void 0 ? targets.filter((f) => !mentionedInDesign(f, design.content)) : [];
+  const acceptanceIds = [...new Set(docs.get("requirements")?.content.match(AC_ID_PATTERN) ?? [])];
+  const testContent = docs.get("test")?.content ?? "";
+  const planContent = docs.get("plan")?.content ?? "";
+  return {
+    designPath: design?.path,
+    checkedFiles: targets.length,
+    undocumented,
+    acceptanceIds,
+    untestedIds: acceptanceIds.filter((id) => !testContent.includes(id)),
+    unplannedIds: acceptanceIds.filter((id) => !planContent.includes(id))
+  };
 }
 function scanDocs(cwd) {
   const candidates = [];
@@ -6614,8 +6660,8 @@ function scanDocs(cwd) {
   }
   return found;
 }
-function runDeepDoctor(cwd, since, disabledRules = []) {
-  const diff = collectDiff(cwd, since);
+function runDeepDoctor(cwd, since, disabledRules = [], traceExcludes = []) {
+  const { diff, changedFiles } = collectDiff(cwd, since);
   const docs = scanDocs(cwd);
   const disabled = new Set(disabledRules);
   const scores = Object.keys(CATEGORY_LABELS).map(
@@ -6650,9 +6696,10 @@ function runDeepDoctor(cwd, since, disabledRules = []) {
   );
   const measured = scores.filter((s) => s.docPath !== void 0);
   const overall = measured.length ? Math.round(measured.reduce((sum, s) => sum + s.score, 0) / measured.length) : 0;
-  return { since, diff, scores, overall };
+  const trace = collectTrace(cwd, changedFiles, docs, traceExcludes);
+  return { since, diff, scores, overall, trace };
 }
-var import_child_process, import_fs10, import_path10, CATEGORY_LABELS, CATEGORY_PATTERNS, deepRules;
+var import_child_process, import_fs10, import_path10, CATEGORY_LABELS, CATEGORY_PATTERNS, deepRules, DEFAULT_TRACE_EXCLUDES, AC_ID_PATTERN;
 var init_deep = __esm({
   "src/doctor/deep.ts"() {
     "use strict";
@@ -6870,6 +6917,8 @@ var init_deep = __esm({
         improvement: "AI\u30BF\u30B9\u30AF\u306E\u5B8C\u4E86\u6761\u4EF6\u3092\u5B9A\u7FA9\u3059\u308B"
       }
     ];
+    DEFAULT_TRACE_EXCLUDES = [".ai/**", "**/*.md", "*.md", "package-lock.json"];
+    AC_ID_PATTERN = /\bAC-\d+\b/g;
   }
 });
 
@@ -7100,6 +7149,14 @@ function endSession(cwd, name) {
   writeStatus(root, target, status);
   if (readCurrent(root) === target) clearCurrent(root);
   log.success(`\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u7D42\u4E86\u3057\u307E\u3057\u305F: ${target}`);
+  const designFile = import_path13.default.join(root, ".ai", "sessions", target, "design.md");
+  if (import_fs13.default.existsSync(designFile) && import_fs13.default.readFileSync(designFile, "utf8").trim().length > 0) {
+    log.info(
+      import_picocolors4.default.dim(
+        "\u7D42\u4E86\u524D\u30C1\u30A7\u30C3\u30AF: design.md \u306E\u6052\u4E45\u7684\u306A\u8A2D\u8A08\u5224\u65AD\uFF08\u69CB\u6210\u30FB\u65B9\u91DD\u306E\u5909\u66F4\uFF09\u306F docs/architecture.md \u7B49\u3078\u53CD\u6620\u3057\u307E\u3057\u305F\u304B\uFF1F"
+      )
+    );
+  }
 }
 function showSession(cwd, name) {
   const root = requireAiRoot(cwd);
@@ -7150,13 +7207,14 @@ function listSessions(cwd) {
   }
   if (current) log.info("\n  * = \u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3");
 }
-var import_child_process3, import_fs13, import_path13, sessionsRoot, currentFile, statusFile, sessionDir;
+var import_child_process3, import_fs13, import_path13, import_picocolors4, sessionsRoot, currentFile, statusFile, sessionDir;
 var init_session = __esm({
   "src/commands/session.ts"() {
     "use strict";
     import_child_process3 = require("child_process");
     import_fs13 = __toESM(require("fs"));
     import_path13 = __toESM(require("path"));
+    import_picocolors4 = __toESM(require_picocolors());
     init_logger();
     sessionsRoot = (root) => import_path13.default.join(root, ".ai", "sessions");
     currentFile = (root) => import_path13.default.join(sessionsRoot(root), ".current");
@@ -43069,6 +43127,30 @@ function renderMarkdown(report) {
     }
     lines.push("");
   }
+  lines.push("## \u30C8\u30EC\u30FC\u30B5\u30D3\u30EA\u30C6\u30A3", "");
+  const t = report.trace;
+  if (t.checkedFiles === 0) {
+    lines.push("- \u7A81\u304D\u5408\u308F\u305B\u5BFE\u8C61\u306E\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u306A\u3057");
+  } else if (t.designPath === void 0) {
+    lines.push("- \u8A2D\u8A08\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u7121\u3044\u305F\u3081\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u3068\u306E\u7A81\u304D\u5408\u308F\u305B\u306F\u672A\u5B9F\u65BD");
+  } else if (t.undocumented.length > 0) {
+    lines.push(
+      `- \u26A0 \u8A2D\u8A08(\`${t.designPath}\`)\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB: ${t.undocumented.join(", ")}`
+    );
+  } else {
+    lines.push(`- \u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${t.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(\`${t.designPath}\`)\u306B\u8A18\u8F09\u3042\u308A`);
+  }
+  if (t.acceptanceIds.length > 0) {
+    if (t.untestedIds.length > 0)
+      lines.push(`- \u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.untestedIds.join(", ")}`);
+    if (t.unplannedIds.length > 0)
+      lines.push(`- \u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.unplannedIds.join(", ")}`);
+    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0)
+      lines.push(`- \u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${t.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u53C2\u7167\u6E08\u307F`);
+  } else {
+    lines.push("- \u53D7\u3051\u5165\u308C\u6761\u4EF6 ID (AC-n) \u306F\u672A\u4F7F\u7528");
+  }
+  lines.push("");
   return lines.join("\n");
 }
 function renderHtml(report) {
@@ -43105,9 +43187,35 @@ function renderHtml(report) {
   <tr><th>\u30AB\u30C6\u30B4\u30EA</th><th>\u30B9\u30B3\u30A2</th><th>\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8</th><th>\u6539\u5584\u6848</th></tr>
   ${rows}
 </table>
+<h2>\u30C8\u30EC\u30FC\u30B5\u30D3\u30EA\u30C6\u30A3</h2>
+<ul>${traceItems(report).map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>
 </body>
 </html>
 `;
+}
+function traceItems(report) {
+  const t = report.trace;
+  const items = [];
+  if (t.checkedFiles === 0) {
+    items.push("\u7A81\u304D\u5408\u308F\u305B\u5BFE\u8C61\u306E\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u306A\u3057");
+  } else if (t.designPath === void 0) {
+    items.push("\u8A2D\u8A08\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u7121\u3044\u305F\u3081\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u3068\u306E\u7A81\u304D\u5408\u308F\u305B\u306F\u672A\u5B9F\u65BD");
+  } else if (t.undocumented.length > 0) {
+    items.push(`\u26A0 \u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB: ${t.undocumented.join(", ")}`);
+  } else {
+    items.push(`\u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${t.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u3042\u308A`);
+  }
+  if (t.acceptanceIds.length > 0) {
+    if (t.untestedIds.length > 0)
+      items.push(`\u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.untestedIds.join(", ")}`);
+    if (t.unplannedIds.length > 0)
+      items.push(`\u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.unplannedIds.join(", ")}`);
+    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0)
+      items.push(`\u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${t.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u53C2\u7167\u6E08\u307F`);
+  } else {
+    items.push("\u53D7\u3051\u5165\u308C\u6761\u4EF6 ID (AC-n) \u306F\u672A\u4F7F\u7528");
+  }
+  return items;
 }
 function escapeHtml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -43121,7 +43229,12 @@ function scoreColor(score) {
 }
 function runDeep(cwd, options) {
   const rc = readRc(cwd);
-  const report = runDeepDoctor(cwd, options.since ?? "main", rc.doctor?.deep?.disable ?? []);
+  const report = runDeepDoctor(
+    cwd,
+    options.since ?? "main",
+    rc.doctor?.deep?.disable ?? [],
+    rc.doctor?.deep?.trace?.exclude ?? []
+  );
   if (options.report) {
     const files = writeDeepReports(report, options.report);
     for (const f of files) log.step(`\u30EC\u30DD\u30FC\u30C8\u51FA\u529B: ${f}`);
@@ -43147,6 +43260,47 @@ function runDeep(cwd, options) {
     }
     for (const f of s.failed) {
       log.info(import_picocolors2.default.dim(`    - ${f.label} \u2192 ${f.improvement}`));
+    }
+  }
+  log.info("");
+  log.info(import_picocolors2.default.bold("\u30C8\u30EC\u30FC\u30B5\u30D3\u30EA\u30C6\u30A3\uFF08\u8981\u4EF6\u30FB\u8A2D\u8A08\u3068\u30B3\u30FC\u30C9\u306E\u7D10\u3065\u3051\uFF09"));
+  const t = report.trace;
+  if (t.checkedFiles === 0) {
+    log.info(import_picocolors2.default.dim("  - \u7A81\u304D\u5408\u308F\u305B\u5BFE\u8C61\u306E\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u304C\u3042\u308A\u307E\u305B\u3093"));
+  } else if (t.designPath === void 0) {
+    log.info(import_picocolors2.default.dim("  - \u8A2D\u8A08\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u7121\u3044\u305F\u3081\u3001\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u3068\u306E\u7A81\u304D\u5408\u308F\u305B\u306F\u672A\u5B9F\u65BD\u3067\u3059"));
+  } else if (t.undocumented.length > 0) {
+    log.info(import_picocolors2.default.yellow(`  \u26A0 \u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB:`));
+    for (const f of t.undocumented) log.info(import_picocolors2.default.yellow(`      - ${f}`));
+    log.info(import_picocolors2.default.dim("      \u2192 \u8A2D\u8A08\u306E\u300C\u5909\u66F4\u5BFE\u8C61\u300D\u3092\u66F4\u65B0\u3059\u308B\u304B\u3001\u610F\u56F3\u7684\u306A\u3089\u7406\u7531\u3092\u8FFD\u8A18\u3057\u3066\u304F\u3060\u3055\u3044"));
+  } else {
+    log.info(
+      import_picocolors2.default.green(`  \u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${t.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u304C\u3042\u308A\u307E\u3059`)
+    );
+  }
+  if (t.acceptanceIds.length === 0) {
+    log.info(
+      import_picocolors2.default.dim(
+        "  - \u53D7\u3051\u5165\u308C\u6761\u4EF6 ID (AC-n) \u304C\u8981\u4EF6\u306B\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002\u5B8C\u4E86\u6761\u4EF6\u306B AC-1: \u5F62\u5F0F\u3067\u66F8\u304F\u3068\u30C8\u30EC\u30FC\u30B9\u3067\u304D\u307E\u3059"
+      )
+    );
+  } else {
+    if (t.untestedIds.length > 0) {
+      log.info(
+        import_picocolors2.default.yellow(`  \u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u306A\u3044\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.untestedIds.join(", ")}`)
+      );
+    }
+    if (t.unplannedIds.length > 0) {
+      log.info(
+        import_picocolors2.default.yellow(`  \u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u306A\u3044\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.unplannedIds.join(", ")}`)
+      );
+    }
+    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0) {
+      log.info(
+        import_picocolors2.default.green(
+          `  \u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${t.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u30BF\u30B9\u30AF\u30FB\u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u307E\u3059`
+        )
+      );
     }
   }
   log.info("");

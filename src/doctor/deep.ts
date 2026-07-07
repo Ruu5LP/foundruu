@@ -26,11 +26,28 @@ export interface CategoryScore {
   failed: { id?: string; label: string; improvement: string }[];
 }
 
+export interface TraceReport {
+  /** 変更対象の突き合わせに使った設計ドキュメント（最新セッションの design.md を優先） */
+  designPath?: string;
+  /** 除外適用後の変更ファイル数 */
+  checkedFiles: number;
+  /** 設計に記載が見つからない変更ファイル */
+  undocumented: string[];
+  /** 要件から抽出した受け入れ条件 ID（AC-n） */
+  acceptanceIds: string[];
+  /** テスト観点から参照されていない受け入れ条件 ID */
+  untestedIds: string[];
+  /** タスクから参照されていない受け入れ条件 ID */
+  unplannedIds: string[];
+}
+
 export interface DeepReport {
   since: string;
   diff: { files: number; insertions: number; deletions: number };
   scores: CategoryScore[];
   overall: number;
+  /** 要件・設計とコードの紐づけ検証（総合スコアには算入しない） */
+  trace: TraceReport;
 }
 
 const CATEGORY_LABELS: Record<DocCategory, string> = {
@@ -254,20 +271,104 @@ function git(cwd: string, args: string[]): string {
   return execFileSync("git", ["-C", cwd, ...args], { stdio: "pipe" }).toString();
 }
 
-function collectDiff(cwd: string, since: string): DeepReport["diff"] {
+function collectDiff(
+  cwd: string,
+  since: string
+): { diff: DeepReport["diff"]; changedFiles: string[] } {
   const base = git(cwd, ["merge-base", since, "HEAD"]).trim();
   const numstat = git(cwd, ["diff", "--numstat", base]);
-  let files = 0;
   let insertions = 0;
   let deletions = 0;
+  const changedFiles: string[] = [];
   for (const line of numstat.split("\n")) {
-    const m = line.match(/^(\d+|-)\t(\d+|-)\t/);
+    const m = line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/);
     if (!m) continue;
-    files += 1;
+    changedFiles.push(m[3]);
     if (m[1] !== "-") insertions += Number(m[1]);
     if (m[2] !== "-") deletions += Number(m[2]);
   }
-  return { files, insertions, deletions };
+  const files = changedFiles.length;
+  // 未追跡の新規ファイルは diff に出ないが、設計との突き合わせでは変更として扱う
+  const untracked = git(cwd, ["ls-files", "--others", "--exclude-standard"])
+    .split("\n")
+    .filter((f) => f.length > 0);
+  return { diff: { files, insertions, deletions }, changedFiles: [...changedFiles, ...untracked] };
+}
+
+/** 突き合わせからデフォルトで除外するパターン（ドキュメント類・ロックファイル） */
+const DEFAULT_TRACE_EXCLUDES = [".ai/**", "**/*.md", "*.md", "package-lock.json"];
+
+function globToRegExp(glob: string): RegExp {
+  const esc = glob
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+    .replace(/\*\*\//g, "<DIRS>")
+    .replace(/\*\*/g, "<ANY>")
+    .replace(/\*/g, "[^/]*")
+    .replace(/<DIRS>/g, "(?:.*/)?")
+    .replace(/<ANY>/g, ".*");
+  return new RegExp(`^${esc}$`);
+}
+
+/** 設計ドキュメント内でファイルが言及されているか（フルパス / ディレクトリ接頭辞 / ファイル名） */
+function mentionedInDesign(file: string, designContent: string): boolean {
+  if (designContent.includes(file)) return true;
+  const segments = file.split("/");
+  for (let i = 2; i < segments.length; i++) {
+    if (designContent.includes(segments.slice(0, i).join("/") + "/")) return true;
+  }
+  return designContent.includes(segments[segments.length - 1]);
+}
+
+/** 最新セッションディレクトリの相対パスを返す（隠しディレクトリは除外） */
+function latestSessionDir(cwd: string): string | undefined {
+  const sessionsDir = path.join(cwd, ".ai", "sessions");
+  if (!fs.existsSync(sessionsDir)) return undefined;
+  const sessions = fs
+    .readdirSync(sessionsDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+    .map((e) => ({ name: e.name, mtime: fs.statSync(path.join(sessionsDir, e.name)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime);
+  return sessions.length > 0 ? path.join(".ai", "sessions", sessions[0].name) : undefined;
+}
+
+const AC_ID_PATTERN = /\bAC-\d+\b/g;
+
+/** 要件・設計とコードの紐づけを検証する */
+export function collectTrace(
+  cwd: string,
+  changedFiles: string[],
+  docs: Map<DocCategory, { path: string; content: string }>,
+  excludes: string[] = []
+): TraceReport {
+  const patterns = [...DEFAULT_TRACE_EXCLUDES, ...excludes].map(globToRegExp);
+  const targets = changedFiles.filter((f) => !patterns.some((p) => p.test(f)));
+
+  // 変更対象の突き合わせは実装単位の設計である最新セッションの design.md を優先する
+  let design: { path: string; content: string } | undefined;
+  const session = latestSessionDir(cwd);
+  if (session !== undefined) {
+    const p = path.join(session, "design.md");
+    if (fs.existsSync(path.join(cwd, p))) {
+      const content = fs.readFileSync(path.join(cwd, p), "utf8");
+      if (content.trim().length > 0) design = { path: p, content };
+    }
+  }
+  design ??= docs.get("design");
+
+  const undocumented =
+    design !== undefined ? targets.filter((f) => !mentionedInDesign(f, design.content)) : [];
+
+  const acceptanceIds = [...new Set(docs.get("requirements")?.content.match(AC_ID_PATTERN) ?? [])];
+  const testContent = docs.get("test")?.content ?? "";
+  const planContent = docs.get("plan")?.content ?? "";
+  return {
+    designPath: design?.path,
+    checkedFiles: targets.length,
+    undocumented,
+    acceptanceIds,
+    untestedIds: acceptanceIds.filter((id) => !testContent.includes(id)),
+    unplannedIds: acceptanceIds.filter((id) => !planContent.includes(id)),
+  };
 }
 
 /** docs/ ・リポジトリ直下・最新の .ai/sessions/ からカテゴリ別ドキュメントを収集する */
@@ -313,9 +414,10 @@ export function scanDocs(cwd: string): Map<DocCategory, { path: string; content:
 export function runDeepDoctor(
   cwd: string,
   since: string,
-  disabledRules: string[] = []
+  disabledRules: string[] = [],
+  traceExcludes: string[] = []
 ): DeepReport {
-  const diff = collectDiff(cwd, since);
+  const { diff, changedFiles } = collectDiff(cwd, since);
   const docs = scanDocs(cwd);
   // 未知の ID は無視する(将来ルールが削除されても設定がエラーにならないように)
   const disabled = new Set(disabledRules);
@@ -361,5 +463,6 @@ export function runDeepDoctor(
   const overall = measured.length
     ? Math.round(measured.reduce((sum, s) => sum + s.score, 0) / measured.length)
     : 0;
-  return { since, diff, scores, overall };
+  const trace = collectTrace(cwd, changedFiles, docs, traceExcludes);
+  return { since, diff, scores, overall, trace };
 }

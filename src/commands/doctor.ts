@@ -21,7 +21,12 @@ function scoreColor(score: number): (s: string) => string {
 
 function runDeep(cwd: string, options: DoctorOptions): void {
   const rc = readRc(cwd);
-  const report = runDeepDoctor(cwd, options.since ?? "main", rc.doctor?.deep?.disable ?? []);
+  const report = runDeepDoctor(
+    cwd,
+    options.since ?? "main",
+    rc.doctor?.deep?.disable ?? [],
+    rc.doctor?.deep?.trace?.exclude ?? []
+  );
   if (options.report) {
     const files = writeDeepReports(report, options.report);
     for (const f of files) log.step(`レポート出力: ${f}`);
@@ -47,6 +52,47 @@ function runDeep(cwd: string, options: DoctorOptions): void {
     }
     for (const f of s.failed) {
       log.info(pc.dim(`    - ${f.label} → ${f.improvement}`));
+    }
+  }
+  log.info("");
+  log.info(pc.bold("トレーサビリティ（要件・設計とコードの紐づけ）"));
+  const t = report.trace;
+  if (t.checkedFiles === 0) {
+    log.info(pc.dim("  - 突き合わせ対象の変更ファイルがありません"));
+  } else if (t.designPath === undefined) {
+    log.info(pc.dim("  - 設計ドキュメントが無いため、変更ファイルとの突き合わせは未実施です"));
+  } else if (t.undocumented.length > 0) {
+    log.info(pc.yellow(`  ⚠ 設計(${t.designPath})に記載のない変更ファイル:`));
+    for (const f of t.undocumented) log.info(pc.yellow(`      - ${f}`));
+    log.info(pc.dim("      → 設計の「変更対象」を更新するか、意図的なら理由を追記してください"));
+  } else {
+    log.info(
+      pc.green(`  ✔ 変更ファイル ${t.checkedFiles} 件はすべて設計(${t.designPath})に記載があります`)
+    );
+  }
+  if (t.acceptanceIds.length === 0) {
+    log.info(
+      pc.dim(
+        "  - 受け入れ条件 ID (AC-n) が要件に見つかりません。完了条件に AC-1: 形式で書くとトレースできます"
+      )
+    );
+  } else {
+    if (t.untestedIds.length > 0) {
+      log.info(
+        pc.yellow(`  ⚠ テスト観点から参照されていない受け入れ条件: ${t.untestedIds.join(", ")}`)
+      );
+    }
+    if (t.unplannedIds.length > 0) {
+      log.info(
+        pc.yellow(`  ⚠ タスクから参照されていない受け入れ条件: ${t.unplannedIds.join(", ")}`)
+      );
+    }
+    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0) {
+      log.info(
+        pc.green(
+          `  ✔ 受け入れ条件 ${t.acceptanceIds.length} 件はすべてタスク・テスト観点から参照されています`
+        )
+      );
     }
   }
   log.info("");

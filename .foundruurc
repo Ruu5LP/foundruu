@@ -1,7 +1,16 @@
 {
   "doctor": {
     "deep": {
-      "disable": ["design.api-io", "design.rollback"]
+      "disable": [
+        "design.api-io",
+        "design.rollback"
+      ],
+      "trace": {
+        "exclude": [
+          "action/index.cjs",
+          "dist/**"
+        ]
+      }
     }
   }
 }
