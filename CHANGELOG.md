@@ -8,6 +8,10 @@
 
 ### Added
 
+- **実装前の構造化整理をサポート**。頭の中の実装イメージを構造化ドキュメントへ落とし込む仕組みを追加
+  - 配布プロンプト `.ai/prompts/structure.md` を新設。「目的→対象範囲→影響範囲→段階分け→依存関係→リスク」の順に AI が対話で整理し、requirements.md / design.md / tasks.md へ書き出すフローを定義。session-workflow.md と `session start` の案内から導線を追加
+  - `tasks.md` テンプレートに「依存関係と順序」「リスク・懸念」セクションを追加
+  - `doctor --deep` に **計画品質（plan）** カテゴリを追加。tasks.md / plan.md 等を対象に、タスク分解・依存関係・リスク・完了条件の4観点でスコア化する
 - **Python を正式サポート**（テンプレート `python`、FastAPI ベース）。他言語と同水準の厳格な機械チェックを同梱
   - `pyproject.toml`: Ruff（lint + format）と mypy（`strict` + `disallow_any_explicit`）を設定。`Any` 禁止・命名規約（`snake_case` 等）・型注釈必須・未使用コード検出などをコーディング規約と対応付けて有効化。日本語コメントの全角記号は誤検知しないよう `RUF001-003` のみ除外
   - `main.py` / `tests/test_main.py`（FastAPI + `TestClient`）、`requirements.txt` / `requirements-dev.txt`、Python 向け `.gitignore`、`docs/SETUP.md` を生成

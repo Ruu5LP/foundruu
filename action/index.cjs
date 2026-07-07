@@ -6658,6 +6658,7 @@ var init_deep = __esm({
     CATEGORY_LABELS = {
       requirements: "\u8981\u4EF6\u54C1\u8CEA",
       design: "\u8A2D\u8A08\u54C1\u8CEA",
+      plan: "\u8A08\u753B\u54C1\u8CEA",
       test: "\u30C6\u30B9\u30C8\u54C1\u8CEA",
       aiInstructions: "AI\u6307\u793A\u54C1\u8CEA"
     };
@@ -6671,7 +6672,8 @@ var init_deep = __esm({
         pattern: /requirement|spec|specification|prd|user[-_ ]?stor|要件|仕様/i
       },
       { category: "design", pattern: /design|architecture|adr|設計|アーキ/i },
-      { category: "test", pattern: /test|testing|qa|テスト|検証/i }
+      { category: "test", pattern: /test|testing|qa|テスト|検証/i },
+      { category: "plan", pattern: /tasks?|plan|todo|タスク|計画/i }
     ];
     deepRules = [
       {
@@ -6745,6 +6747,30 @@ var init_deep = __esm({
         label: "\u51E6\u7406\u30D5\u30ED\u30FC\u304C\u8AAC\u660E\u3055\u308C\u3066\u3044\u308B",
         pattern: /フロー|流れ|シーケンス|flow|sequence/i,
         improvement: "\u4E3B\u8981\u306A\u51E6\u7406\u306E\u6D41\u308C\u3092\u56F3\u307E\u305F\u306F\u7B87\u6761\u66F8\u304D\u3067\u66F8\u304F"
+      },
+      {
+        category: "plan",
+        label: "\u30BF\u30B9\u30AF\u304C\u5206\u89E3\u3055\u308C\u3066\u3044\u308B",
+        pattern: /- \[[ x]\]|実装タスク|タスク一覧|task list/i,
+        improvement: "\u5B9F\u884C\u53EF\u80FD\u306A\u5358\u4F4D\u306E\u30BF\u30B9\u30AF\u3078\u30C1\u30A7\u30C3\u30AF\u30EA\u30B9\u30C8\u5F62\u5F0F\u3067\u5206\u89E3\u3059\u308B"
+      },
+      {
+        category: "plan",
+        label: "\u4F9D\u5B58\u95A2\u4FC2\u30FB\u9806\u5E8F\u304C\u3042\u308B",
+        pattern: /依存|順序|ブロッカー|並行|depends?|order|blocker/i,
+        improvement: "\u30BF\u30B9\u30AF\u540C\u58EB\u306E\u4F9D\u5B58\u95A2\u4FC2\u3068\u7740\u624B\u9806\u5E8F\u3092\u660E\u8A18\u3059\u308B"
+      },
+      {
+        category: "plan",
+        label: "\u30EA\u30B9\u30AF\u30FB\u61F8\u5FF5\u304C\u3042\u308B",
+        pattern: /リスク|懸念|不確実|risk|concern/i,
+        improvement: "\u4E0D\u78BA\u5B9F\u306A\u70B9\u30FB\u3046\u307E\u304F\u3044\u304B\u306A\u3044\u53EF\u80FD\u6027\u304C\u3042\u308B\u7B87\u6240\u3092\u66F8\u304D\u51FA\u3059"
+      },
+      {
+        category: "plan",
+        label: "\u5B8C\u4E86\u6761\u4EF6\u304C\u3042\u308B",
+        pattern: /完了条件|done条件|完了基準|definition of done|受け入れ条件|acceptance criteria/i,
+        improvement: "\u4F55\u3092\u3082\u3063\u3066\u5B8C\u4E86\u3068\u307F\u306A\u3059\u304B\u3092\u691C\u8A3C\u53EF\u80FD\u306A\u5F62\u3067\u66F8\u304F"
       },
       {
         category: "test",
@@ -7027,6 +7053,7 @@ function startSession(cwd, name) {
   log.info("");
   log.info("\u6B21\u306E\u30B9\u30C6\u30C3\u30D7:");
   log.info("  1. requirements.md \u306B\u8981\u4EF6\u3092\u66F8\u304F");
+  log.info("     \uFF08\u307E\u3060\u6574\u7406\u3067\u304D\u3066\u3044\u306A\u3044\u5834\u5408\u306F .ai/prompts/structure.md \u3092 AI \u306B\u6E21\u3057\u3066\u69CB\u9020\u5316\u3059\u308B\uFF09");
   log.info("  2. AI \u306B .ai/prompts/session-workflow.md \u3068 requirements.md \u3092\u6E21\u3059");
   log.info("  3. AI \u304C\u300C\u9032\u3081\u308B / \u8CEA\u554F\u3059\u308B\u300D\u3092\u5224\u65AD\u3057\u307E\u3059");
 }

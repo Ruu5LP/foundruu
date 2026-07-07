@@ -76,6 +76,7 @@ foundruu update
 ```
 .ai/
   prompts/session-workflow.md    # 要件ゲート付き開発フロー
+  prompts/structure.md           # 実装前の構造化整理（目的→影響範囲→段階分け→依存関係→リスク）
   workflows/                     # development / feature / bugfix / review
   templates/session/             # requirements / design / tasks / test / summary 等
 docs/ai/                         # 会社共通ルール + プロジェクトルール
@@ -106,7 +107,7 @@ Docker / GitHub Actions / AI Rules / Workflow / Prompt / foundruu.json
 ```
 
 `foundruu doctor --deep` は DevDoctor 由来の品質診断で、docs/（および最新の `.ai/sessions/`）の
-要件・設計・テスト・AI指示ドキュメントをスコア化し、不足観点と改善案を提示します。
+要件・設計・計画（タスク分解）・テスト・AI指示ドキュメントをスコア化し、不足観点と改善案を提示します。
 
 ## MCP Server として使う
 

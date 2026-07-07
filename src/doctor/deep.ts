@@ -7,7 +7,7 @@ import path from "path";
  * docs/ と .ai/sessions/ のドキュメントを分析し、AI開発プロセスの品質をスコア化する。
  */
 
-export type DocCategory = "requirements" | "design" | "test" | "aiInstructions";
+export type DocCategory = "requirements" | "design" | "plan" | "test" | "aiInstructions";
 
 export interface DeepRule {
   category: DocCategory;
@@ -34,6 +34,7 @@ export interface DeepReport {
 const CATEGORY_LABELS: Record<DocCategory, string> = {
   requirements: "要件品質",
   design: "設計品質",
+  plan: "計画品質",
   test: "テスト品質",
   aiInstructions: "AI指示品質",
 };
@@ -51,6 +52,7 @@ const CATEGORY_PATTERNS: { category: DocCategory; pattern: RegExp }[] = [
   },
   { category: "design", pattern: /design|architecture|adr|設計|アーキ/i },
   { category: "test", pattern: /test|testing|qa|テスト|検証/i },
+  { category: "plan", pattern: /tasks?|plan|todo|タスク|計画/i },
 ];
 
 /** DevDoctor rules.ts 由来のキーワードルール */
@@ -126,6 +128,30 @@ export const deepRules: DeepRule[] = [
     label: "処理フローが説明されている",
     pattern: /フロー|流れ|シーケンス|flow|sequence/i,
     improvement: "主要な処理の流れを図または箇条書きで書く",
+  },
+  {
+    category: "plan",
+    label: "タスクが分解されている",
+    pattern: /- \[[ x]\]|実装タスク|タスク一覧|task list/i,
+    improvement: "実行可能な単位のタスクへチェックリスト形式で分解する",
+  },
+  {
+    category: "plan",
+    label: "依存関係・順序がある",
+    pattern: /依存|順序|ブロッカー|並行|depends?|order|blocker/i,
+    improvement: "タスク同士の依存関係と着手順序を明記する",
+  },
+  {
+    category: "plan",
+    label: "リスク・懸念がある",
+    pattern: /リスク|懸念|不確実|risk|concern/i,
+    improvement: "不確実な点・うまくいかない可能性がある箇所を書き出す",
+  },
+  {
+    category: "plan",
+    label: "完了条件がある",
+    pattern: /完了条件|done条件|完了基準|definition of done|受け入れ条件|acceptance criteria/i,
+    improvement: "何をもって完了とみなすかを検証可能な形で書く",
   },
   {
     category: "test",

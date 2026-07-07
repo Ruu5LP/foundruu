@@ -45,6 +45,12 @@ describe("scanDocs", () => {
     expect(docs.get("requirements")?.path).toBe("docs/spec.md");
     expect(docs.get("aiInstructions")?.path).toBe("AGENTS.md");
   });
+
+  it("tasks.md / plan.md を計画(plan)カテゴリとして拾う", () => {
+    write(".ai/sessions/s1/tasks.md", "# タスク");
+    const docs = scanDocs(tmp);
+    expect(docs.get("plan")?.path).toBe(path.join(".ai/sessions/s1", "tasks.md"));
+  });
 });
 
 describe("runDeepDoctor", () => {
@@ -76,6 +82,17 @@ describe("runDeepDoctor", () => {
     expect(req.score).toBe(100);
     expect(req.failed).toHaveLength(0);
     expect(req.docPath).toBe("docs/requirements.md");
+  });
+
+  it("観点が揃ったタスクドキュメントは計画品質が満点になる", () => {
+    write(
+      "docs/tasks.md",
+      "## 実装タスク\n- [ ] a\n## 依存関係と順序\n## リスク・懸念\n## 完了条件\n- [ ] b\n"
+    );
+    const report = runDeepDoctor(tmp, "main");
+    const plan = report.scores.find((s) => s.category === "plan")!;
+    expect(plan.score).toBe(100);
+    expect(plan.failed).toHaveLength(0);
   });
 
   it("不足観点には改善案が付く", () => {

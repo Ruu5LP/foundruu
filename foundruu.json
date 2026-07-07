@@ -2,9 +2,10 @@
   "version": "0.11.0",
   "workflow": {
     "version": "0.11.0",
-    "installedAt": "2026-07-06T23:02:25.951Z",
+    "installedAt": "2026-07-07T11:02:55.263Z",
     "files": {
       ".ai/prompts/session-workflow.md": "75992181cd35e6a8addaa98154de3a96f869b8564bab168668077a2eb1f78e59",
+      ".ai/prompts/structure.md": "f446b8e9a15a76009d9d928a3b0e629235b6d6338c09d1b73a80b200b97dbf89",
       ".ai/templates/session/design.md": "545ff55bf149665972080b0e67034b59c05baec44b79ccdb702e9521ba364bf5",
       ".ai/templates/session/questions.md": "02f688cc9bbea05aeddd0986ffdab0c8c3723fe8a1d6cd15b1e12fbd84694f6e",
       ".ai/templates/session/requirements.md": "b62fe280f4716e7d9fd6e2b4c3a77ebc1feb477a073eb73eeca3d61aeafc308a",

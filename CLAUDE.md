@@ -26,7 +26,7 @@
 | `assets/`          | 配布アセット（`workflow/.ai/`・`templates/`）。`init` / `workflow install` がここをコピーする |
 | `plugins/`         | プラグイン                                                                                    |
 | `tests/`           | Vitest テスト                                                                                 |
-| `dist/`            | `npm run build` の出力（tsc）。コミット対象                                                   |
+| `dist/`            | `npm run build` の出力（tsc）。Git 管理外（.gitignore 対象）                                  |
 | `action/index.cjs` | GitHub Action 用バンドル（`npm run build:action` で生成、手編集禁止）                         |
 
 ---

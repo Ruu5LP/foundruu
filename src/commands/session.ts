@@ -129,6 +129,7 @@ export function startSession(cwd: string, name: string): void {
   log.info("");
   log.info("次のステップ:");
   log.info("  1. requirements.md に要件を書く");
+  log.info("     （まだ整理できていない場合は .ai/prompts/structure.md を AI に渡して構造化する）");
   log.info("  2. AI に .ai/prompts/session-workflow.md と requirements.md を渡す");
   log.info("  3. AI が「進める / 質問する」を判断します");
 }
