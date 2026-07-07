@@ -124,6 +124,13 @@ describe("トレーサビリティ", () => {
 });
 
 describe("runDeepDoctor", () => {
+  it("未追跡ファイル数を diff.untracked として数える(diff.files には含めない)", () => {
+    write("src/new-file.ts", "export {};\n");
+    const report = runDeepDoctor(tmp, "main");
+    expect(report.diff.untracked).toBe(1);
+    expect(report.diff.files).toBe(0);
+  });
+
   it("ドキュメントが無いカテゴリは未計測(docPath なし)で、総合は 0 のまま", () => {
     const report = runDeepDoctor(tmp, "main");
     expect(report.scores.every((s) => s.docPath === undefined)).toBe(true);

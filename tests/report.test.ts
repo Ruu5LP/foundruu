@@ -16,7 +16,7 @@ afterEach(() => {
 
 const baseReport = (over: Partial<DeepReport["trace"]>): DeepReport => ({
   since: "main",
-  diff: { files: 2, insertions: 10, deletions: 3 },
+  diff: { files: 2, insertions: 10, deletions: 3, untracked: 0 },
   scores: [
     {
       category: "requirements",
@@ -81,6 +81,18 @@ describe("writeDeepReports", () => {
     const md = fs.readFileSync(writeDeepReports(report, tmp)[1], "utf8");
     expect(md).toContain("✔ 変更ファイル 3 件はすべて設計");
     expect(md).toContain("✔ 受け入れ条件 1 件はすべて参照済み");
+  });
+
+  it("未追跡ファイルがある場合は差分行に付記される", () => {
+    const report = baseReport({});
+    report.diff.untracked = 2;
+    const md = fs.readFileSync(writeDeepReports(report, tmp)[1], "utf8");
+    expect(md).toContain("（ほか未追跡 2 ファイル）");
+  });
+
+  it("未追跡 0 件時は差分行に付記されない", () => {
+    const md = fs.readFileSync(writeDeepReports(baseReport({}), tmp)[1], "utf8");
+    expect(md).not.toContain("未追跡");
   });
 
   it("設計ドキュメントが無い場合は未実施と出力する", () => {

@@ -43,7 +43,7 @@ export interface TraceReport {
 
 export interface DeepReport {
   since: string;
-  diff: { files: number; insertions: number; deletions: number };
+  diff: { files: number; insertions: number; deletions: number; untracked: number };
   scores: CategoryScore[];
   overall: number;
   /** 要件・設計とコードの紐づけ検証（総合スコアには算入しない） */
@@ -292,7 +292,10 @@ function collectDiff(
   const untracked = git(cwd, ["ls-files", "--others", "--exclude-standard"])
     .split("\n")
     .filter((f) => f.length > 0);
-  return { diff: { files, insertions, deletions }, changedFiles: [...changedFiles, ...untracked] };
+  return {
+    diff: { files, insertions, deletions, untracked: untracked.length },
+    changedFiles: [...changedFiles, ...untracked],
+  };
 }
 
 /** 突き合わせからデフォルトで除外するパターン（ドキュメント類・ロックファイル） */

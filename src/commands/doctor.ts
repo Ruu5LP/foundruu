@@ -36,8 +36,10 @@ function runDeep(cwd: string, options: DoctorOptions): void {
     return;
   }
   log.info(pc.bold("FoundRuu Doctor --deep — AI開発プロセス品質診断\n"));
+  const untrackedNote =
+    report.diff.untracked > 0 ? `（ほか未追跡 ${report.diff.untracked} ファイル）` : "";
   log.info(
-    `差分(${report.since} 基準): ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}\n`
+    `差分(${report.since} 基準): ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}${untrackedNote}\n`
   );
   for (const s of report.scores) {
     if (s.docPath === undefined) {

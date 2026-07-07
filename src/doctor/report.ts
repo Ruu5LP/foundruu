@@ -30,7 +30,7 @@ function renderMarkdown(report: DeepReport): string {
     "",
     `- 生成日時: ${new Date().toISOString()}`,
     `- 比較基準: \`${report.since}\``,
-    `- 差分: ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}`,
+    `- 差分: ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}${report.diff.untracked > 0 ? `（ほか未追跡 ${report.diff.untracked} ファイル）` : ""}`,
     `- **総合スコア: ${hasMeasured ? `${report.overall}点` : "未計測"}**`,
     "",
     "| カテゴリ | スコア | ドキュメント |",
@@ -106,7 +106,7 @@ function renderHtml(report: DeepReport): string {
 </head>
 <body>
 <h1>FoundRuu Deep Report</h1>
-<p>比較基準: <code>${escapeHtml(report.since)}</code> / 差分: ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}</p>
+<p>比較基準: <code>${escapeHtml(report.since)}</code> / 差分: ${report.diff.files}ファイル +${report.diff.insertions} -${report.diff.deletions}${report.diff.untracked > 0 ? `（ほか未追跡 ${report.diff.untracked} ファイル）` : ""}</p>
 <p class="overall">総合スコア: ${hasMeasured ? `${report.overall}点` : "未計測"}</p>
 <table>
   <tr><th>カテゴリ</th><th>スコア</th><th>ドキュメント</th><th>改善案</th></tr>

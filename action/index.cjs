@@ -6582,7 +6582,10 @@ function collectDiff(cwd, since) {
   }
   const files = changedFiles.length;
   const untracked = git(cwd, ["ls-files", "--others", "--exclude-standard"]).split("\n").filter((f) => f.length > 0);
-  return { diff: { files, insertions, deletions }, changedFiles: [...changedFiles, ...untracked] };
+  return {
+    diff: { files, insertions, deletions, untracked: untracked.length },
+    changedFiles: [...changedFiles, ...untracked]
+  };
 }
 function globToRegExp(glob) {
   const esc3 = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*\//g, "<DIRS>").replace(/\*\*/g, "<ANY>").replace(/\*/g, "[^/]*").replace(/<DIRS>/g, "(?:.*/)?").replace(/<ANY>/g, ".*");
@@ -43111,7 +43114,7 @@ function renderMarkdown(report) {
     "",
     `- \u751F\u6210\u65E5\u6642: ${(/* @__PURE__ */ new Date()).toISOString()}`,
     `- \u6BD4\u8F03\u57FA\u6E96: \`${report.since}\``,
-    `- \u5DEE\u5206: ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}`,
+    `- \u5DEE\u5206: ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}${report.diff.untracked > 0 ? `\uFF08\u307B\u304B\u672A\u8FFD\u8DE1 ${report.diff.untracked} \u30D5\u30A1\u30A4\u30EB\uFF09` : ""}`,
     `- **\u7DCF\u5408\u30B9\u30B3\u30A2: ${hasMeasured ? `${report.overall}\u70B9` : "\u672A\u8A08\u6E2C"}**`,
     "",
     "| \u30AB\u30C6\u30B4\u30EA | \u30B9\u30B3\u30A2 | \u30C9\u30AD\u30E5\u30E1\u30F3\u30C8 |",
@@ -43181,7 +43184,7 @@ function renderHtml(report) {
 </head>
 <body>
 <h1>FoundRuu Deep Report</h1>
-<p>\u6BD4\u8F03\u57FA\u6E96: <code>${escapeHtml(report.since)}</code> / \u5DEE\u5206: ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}</p>
+<p>\u6BD4\u8F03\u57FA\u6E96: <code>${escapeHtml(report.since)}</code> / \u5DEE\u5206: ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}${report.diff.untracked > 0 ? `\uFF08\u307B\u304B\u672A\u8FFD\u8DE1 ${report.diff.untracked} \u30D5\u30A1\u30A4\u30EB\uFF09` : ""}</p>
 <p class="overall">\u7DCF\u5408\u30B9\u30B3\u30A2: ${hasMeasured ? `${report.overall}\u70B9` : "\u672A\u8A08\u6E2C"}</p>
 <table>
   <tr><th>\u30AB\u30C6\u30B4\u30EA</th><th>\u30B9\u30B3\u30A2</th><th>\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8</th><th>\u6539\u5584\u6848</th></tr>
@@ -43244,8 +43247,9 @@ function runDeep(cwd, options) {
     return;
   }
   log.info(import_picocolors2.default.bold("FoundRuu Doctor --deep \u2014 AI\u958B\u767A\u30D7\u30ED\u30BB\u30B9\u54C1\u8CEA\u8A3A\u65AD\n"));
+  const untrackedNote = report.diff.untracked > 0 ? `\uFF08\u307B\u304B\u672A\u8FFD\u8DE1 ${report.diff.untracked} \u30D5\u30A1\u30A4\u30EB\uFF09` : "";
   log.info(
-    `\u5DEE\u5206(${report.since} \u57FA\u6E96): ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}
+    `\u5DEE\u5206(${report.since} \u57FA\u6E96): ${report.diff.files}\u30D5\u30A1\u30A4\u30EB +${report.diff.insertions} -${report.diff.deletions}${untrackedNote}
 `
   );
   for (const s of report.scores) {
