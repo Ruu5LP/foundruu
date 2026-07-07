@@ -258,7 +258,7 @@ export function scanDocs(cwd: string): Map<DocCategory, { path: string; content:
   if (fs.existsSync(sessionsDir)) {
     const sessions = fs
       .readdirSync(sessionsDir, { withFileTypes: true })
-      .filter((e) => e.isDirectory())
+      .filter((e) => e.isDirectory() && !e.name.startsWith("."))
       .map((e) => ({ name: e.name, mtime: fs.statSync(path.join(sessionsDir, e.name)).mtimeMs }))
       .sort((a, b) => b.mtime - a.mtime);
     if (sessions.length > 0) {

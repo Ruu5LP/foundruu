@@ -8,6 +8,7 @@
 ## プロジェクト概要
 
 - **名称:** FoundRuu CLI (`foundruu`)
+- **目的:** 人とAIが同じルール・同じ品質で開発できる環境を提供すること
 - **役割:** AI開発を標準化するプラットフォーム。テンプレート / Workflow / Rules / 診断(Doctor) を統合し、人とAIが同じルール・同じ品質で開発できる環境を提供する。
 - **言語 / 実行環境:** TypeScript / Node.js `>=22`（ESM）
 - **配布形態:** npm パッケージ (`foundruu`) + GitHub Action (`action/`) + VS Code 拡張 (`vscode-extension/`)
@@ -49,6 +50,8 @@ npm run format          # prettier --write .
 ### 実装前
 
 - 変更方針を簡潔に共有してから着手する。大きな変更はユーザーに確認する。
+- 変更範囲は依頼されたタスクに直接関係するファイルに限定する。無関係なリファクタはしない。
+- 設計に迷ったら参照するファイル: `docs/architecture.md`（全体設計）、`.ai/prompts/session-workflow.md`（作業フロー）、`.ai/prompts/structure.md`（実装前の整理）
 
 ### 実装中
 
@@ -56,7 +59,9 @@ npm run format          # prettier --write .
 - 既存コードのスタイル（命名・コメント量・イディオム）に合わせる。
 - ユーザー向け文言・ログ・ドキュメントは日本語で統一する。
 
-### 実装後（必須チェックリスト）
+### 実装後（完了条件チェックリスト）
+
+以下をすべて満たすことがタスクの完了条件です。
 
 - [ ] `npm run lint` がパスする
 - [ ] `npm run typecheck` がパスする

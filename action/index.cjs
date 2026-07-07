@@ -6595,7 +6595,7 @@ function scanDocs(cwd) {
   }
   const sessionsDir = import_path10.default.join(cwd, ".ai", "sessions");
   if (import_fs10.default.existsSync(sessionsDir)) {
-    const sessions = import_fs10.default.readdirSync(sessionsDir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => ({ name: e.name, mtime: import_fs10.default.statSync(import_path10.default.join(sessionsDir, e.name)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
+    const sessions = import_fs10.default.readdirSync(sessionsDir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith(".")).map((e) => ({ name: e.name, mtime: import_fs10.default.statSync(import_path10.default.join(sessionsDir, e.name)).mtimeMs })).sort((a, b) => b.mtime - a.mtime);
     if (sessions.length > 0) {
       const latest = import_path10.default.join(".ai", "sessions", sessions[0].name);
       for (const f of import_fs10.default.readdirSync(import_path10.default.join(cwd, latest))) {

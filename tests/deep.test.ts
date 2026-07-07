@@ -51,6 +51,14 @@ describe("scanDocs", () => {
     const docs = scanDocs(tmp);
     expect(docs.get("plan")?.path).toBe(path.join(".ai/sessions/s1", "tasks.md"));
   });
+
+  it(".ai/sessions/ 直下の隠しディレクトリ(.status 等)は最新セッションとして選ばない", () => {
+    write(".ai/sessions/s1/requirements.md", "# 要件");
+    // session start が作る管理用ディレクトリ。実セッションより新しい mtime でも無視される
+    write(".ai/sessions/.status/s1.json", "{}");
+    const docs = scanDocs(tmp);
+    expect(docs.get("requirements")?.path).toBe(path.join(".ai/sessions/s1", "requirements.md"));
+  });
 });
 
 describe("runDeepDoctor", () => {
