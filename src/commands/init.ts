@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { templatesRoot } from "../core/assets";
 import { cliVersion, writeConfig, readConfig } from "../core/config";
-import { copyTree, TemplateContext } from "../core/copier";
+import { copyTree, MergeConflict, TemplateContext } from "../core/copier";
 import { log } from "../core/logger";
 import {
   availableFeatures,
@@ -116,6 +116,7 @@ export async function runInit(cwd: string, rawOptions: InitOptions): Promise<voi
 
   const root = templatesRoot();
   let written = 0;
+  const conflicts: MergeConflict[] = [];
 
   // 合成順: base → language → features → ai(共通 + プロバイダー別)
   const layers: string[] = [
@@ -135,6 +136,17 @@ export async function runInit(cwd: string, rawOptions: InitOptions): Promise<voi
     const dest = layer === path.join(root, "ai", "_common") ? path.join(cwd, "docs", "ai") : cwd;
     const result = copyTree(layer, dest, ctx);
     written += result.written.length;
+    conflicts.push(...result.conflicts);
+  }
+
+  // 既存プロジェクトへの後入れで値が食い違った箇所は、既存値を維持した上で差分を提示する
+  if (conflicts.length > 0) {
+    log.warn("既存の設定値を維持しました（テンプレートと異なる箇所）:");
+    for (const c of conflicts) {
+      log.warn(
+        `  ${path.relative(cwd, c.file)} ${c.keyPath}: ${JSON.stringify(c.existing)}（テンプレート: ${JSON.stringify(c.incoming)}）`
+      );
+    }
   }
 
   // Workflow / Prompt / Rules / Doctor設定も一括導入
