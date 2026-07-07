@@ -10,6 +10,11 @@ export interface FoundruuRc {
     disable?: string[];
     /** チェックIDごとの severity 上書き */
     severity?: Record<string, Severity>;
+    /** --deep の採点カスタマイズ */
+    deep?: {
+      /** 無効化する採点観点のルールID（例: "design.api-io"）。未知のIDは無視される */
+      disable?: string[];
+    };
   };
 }
 

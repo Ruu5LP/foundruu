@@ -103,6 +103,37 @@ describe("runDeepDoctor", () => {
     expect(plan.failed).toHaveLength(0);
   });
 
+  it(".foundruurc の doctor.deep.disable 相当でルールを採点分母から除外できる", () => {
+    // API入出力・ロールバックは CLI リポジトリでは満たしにくい観点の代表
+    write("docs/design.md", "## 変更対象\n## 既存への影響\n## エラー\n## 処理フロー\n");
+    const before = runDeepDoctor(tmp, "main");
+    expect(before.scores.find((s) => s.category === "design")!.score).toBe(67); // 4/6
+    const after = runDeepDoctor(tmp, "main", ["design.api-io", "design.rollback"]);
+    expect(after.scores.find((s) => s.category === "design")!.score).toBe(100); // 4/4
+  });
+
+  it("未知のルールIDは無視され、採点結果は変わらない", () => {
+    write("docs/design.md", "## 変更対象\n");
+    const base = runDeepDoctor(tmp, "main");
+    const withUnknown = runDeepDoctor(tmp, "main", ["design.no-such-rule"]);
+    expect(withUnknown.scores).toEqual(base.scores);
+  });
+
+  it("カテゴリの全観点を無効化すると未計測(docPath なし)になる", () => {
+    write("docs/design.md", "## 変更対象\n");
+    const report = runDeepDoctor(tmp, "main", [
+      "design.change-targets",
+      "design.existing-impact",
+      "design.api-io",
+      "design.error-handling",
+      "design.rollback",
+      "design.flow",
+    ]);
+    const design = report.scores.find((s) => s.category === "design")!;
+    expect(design.docPath).toBeUndefined();
+    expect(design.failed).toHaveLength(0);
+  });
+
   it("不足観点には改善案が付く", () => {
     write("docs/requirements.md", "## 目的\nAPIを作る\n");
     const report = runDeepDoctor(tmp, "main");

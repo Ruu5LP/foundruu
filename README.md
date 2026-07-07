@@ -109,6 +109,22 @@ Docker / GitHub Actions / AI Rules / Workflow / Prompt / foundruu.json
 `foundruu doctor --deep` は DevDoctor 由来の品質診断で、docs/（および最新の `.ai/sessions/`）の
 要件・設計・計画（タスク分解）・テスト・AI指示ドキュメントをスコア化し、不足観点と改善案を提示します。
 
+プロジェクトに合わない採点観点は `doctor.deep.disable` で無効化できます（採点の分母から除外されます）。
+ルール ID は `--deep --json` 出力の `failed[].id` で確認できます:
+
+```json
+{
+  "doctor": {
+    "deep": {
+      "disable": ["design.api-io", "design.rollback"]
+    }
+  }
+}
+```
+
+例えば CLI ツールやライブラリでは、Web アプリ前提の `design.api-io`（API入出力）や
+`design.rollback`（ロールバック方針）を外すと、スコアが実態に即したものになります。
+
 ## MCP Server として使う
 
 Claude Code 等の MCP クライアントに登録すると、AIエージェントが doctor / session / workflow / update をツールとして直接呼べます:

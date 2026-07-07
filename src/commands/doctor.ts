@@ -2,6 +2,7 @@ import pc from "picocolors";
 import { runDoctor, runDoctorFix } from "../doctor/runner";
 import { runDeepDoctor } from "../doctor/deep";
 import { writeDeepReports } from "../doctor/report";
+import { readRc } from "../doctor/rc";
 import { log } from "../core/logger";
 
 export interface DoctorOptions {
@@ -19,7 +20,8 @@ function scoreColor(score: number): (s: string) => string {
 }
 
 function runDeep(cwd: string, options: DoctorOptions): void {
-  const report = runDeepDoctor(cwd, options.since ?? "main");
+  const rc = readRc(cwd);
+  const report = runDeepDoctor(cwd, options.since ?? "main", rc.doctor?.deep?.disable ?? []);
   if (options.report) {
     const files = writeDeepReports(report, options.report);
     for (const f of files) log.step(`レポート出力: ${f}`);
