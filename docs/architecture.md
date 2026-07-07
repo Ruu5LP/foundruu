@@ -88,6 +88,26 @@ foundruu/
 - **GitHub Actions**: `foundruu doctor --json` の exit code / JSON 出力を CI で消費
 - **VSCode Extension / MCP Server**: `src/commands` はロジックを `core` / `doctor` に委譲しているため、同じ関数を Extension / MCP から呼べる
 
+## 変更対象の見つけ方
+
+機能を追加・変更するときの変更対象ファイルの目安:
+
+| 変更したいこと                    | 変更対象                                                                          |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| サブコマンドの追加・挙動変更      | `src/cli.ts`（登録）+ `src/commands/<cmd>.ts`（本体）                             |
+| doctor の基本チェック追加         | `src/doctor/checks.ts`（宣言的に1エントリ追加）                                   |
+| doctor --deep の採点観点          | `src/doctor/deep.ts` の `deepRules`                                               |
+| 配布アセット（.ai/ テンプレート） | `assets/workflow/.ai/` ・ `assets/templates/`                                     |
+| GitHub Action の挙動              | `src/` を変更後 `npm run build:action` で `action/index.cjs` 再生成（手編集禁止） |
+
+## エラーハンドリング方針
+
+- CLI 全体のエラーケースは `src/cli.ts` の `wrap` に集約する。コマンド実装は例外を投げるだけでよく、
+  `wrap` が `log.error` でメッセージを表示して exit code 1 で終了する
+- プロンプトの Ctrl+C 中断（`ExitPromptError`）は失敗として扱わず、静かに exit code 130 で終了する
+- 設定ファイル（`.foundruurc` 等）の不正 JSON は、原因ファイル名を含むメッセージで即座に失敗させる
+- 診断系（doctor）はエラーで落とすのではなく fail / warn として結果に含め、exit code で CI に伝える
+
 ## 技術スタック
 
 | 項目         | 選定                |

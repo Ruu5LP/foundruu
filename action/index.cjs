@@ -6614,13 +6614,17 @@ function scanDocs(cwd) {
   }
   return found;
 }
-function runDeepDoctor(cwd, since) {
+function runDeepDoctor(cwd, since, disabledRules = []) {
   const diff = collectDiff(cwd, since);
   const docs = scanDocs(cwd);
+  const disabled = new Set(disabledRules);
   const scores = Object.keys(CATEGORY_LABELS).map(
     (category) => {
       const doc = docs.get(category);
-      const rules = deepRules.filter((r) => r.category === category);
+      const rules = deepRules.filter((r) => r.category === category && !disabled.has(r.id));
+      if (rules.length === 0) {
+        return { category, label: CATEGORY_LABELS[category], score: 0, failed: [] };
+      }
       if (!doc) {
         return {
           category,
@@ -6634,7 +6638,7 @@ function runDeepDoctor(cwd, since) {
           ]
         };
       }
-      const failed = rules.filter((r) => !r.pattern.test(doc.content)).map((r) => ({ label: r.label, improvement: r.improvement }));
+      const failed = rules.filter((r) => !r.pattern.test(doc.content)).map((r) => ({ id: r.id, label: r.label, improvement: r.improvement }));
       return {
         category,
         label: CATEGORY_LABELS[category],
@@ -6678,162 +6682,189 @@ var init_deep = __esm({
     deepRules = [
       {
         category: "requirements",
+        id: "requirements.goal",
         label: "\u4F55\u3092\u4F5C\u308B\u304B\u304C\u660E\u78BA",
         pattern: /目的|概要|ゴール|goal|purpose|やること/i,
         improvement: "\u76EE\u7684\u30FB\u6982\u8981\u30FB\u30B4\u30FC\u30EB\u306E\u30BB\u30AF\u30B7\u30E7\u30F3\u3092\u8FFD\u52A0\u3059\u308B"
       },
       {
         category: "requirements",
+        id: "requirements.non-goals",
         label: "\u4F55\u3092\u4F5C\u3089\u306A\u3044\u304B\u304C\u660E\u78BA",
         pattern: /やらないこと|対象外|スコープ外|非対象|out of scope|non-goals?/i,
         improvement: "\u5BFE\u8C61\u5916\u30FB\u975E\u30B4\u30FC\u30EB\u3092\u660E\u8A18\u3057\u3001AI\u306E\u4F5C\u696D\u7BC4\u56F2\u304C\u81A8\u3089\u307E\u306A\u3044\u3088\u3046\u306B\u3059\u308B"
       },
       {
         category: "requirements",
+        id: "requirements.happy-path",
         label: "\u6B63\u5E38\u7CFB\u304C\u3042\u308B",
         pattern: /正常系|happy path|基本フロー/i,
         improvement: "\u4EE3\u8868\u7684\u306A\u6B63\u5E38\u7CFB\u30B7\u30CA\u30EA\u30AA\u3092\u7B87\u6761\u66F8\u304D\u3067\u8FFD\u8A18\u3059\u308B"
       },
       {
         category: "requirements",
+        id: "requirements.error-cases",
         label: "\u7570\u5E38\u7CFB\u304C\u3042\u308B",
         pattern: /異常系|エラー|exception|error case/i,
         improvement: "\u30A8\u30E9\u30FC\u6642\u306E\u30EC\u30B9\u30DD\u30F3\u30B9\u3068\u753B\u9762\u8868\u793A\u3092\u5B9A\u7FA9\u3059\u308B"
       },
       {
         category: "requirements",
+        id: "requirements.permissions",
         label: "\u6A29\u9650\u6761\u4EF6\u304C\u3042\u308B",
         pattern: /権限|ロール|role|permission|アクセス制御/i,
         improvement: "\u8AB0\u304C\u3053\u306E\u6A5F\u80FD\u3092\u4F7F\u3048\u308B\u304B(\u30ED\u30FC\u30EB\u30FB\u6A29\u9650)\u3092\u660E\u8A18\u3059\u308B"
       },
       {
         category: "requirements",
+        id: "requirements.acceptance-criteria",
         label: "\u5B8C\u4E86\u6761\u4EF6\u304C\u691C\u8A3C\u53EF\u80FD",
         pattern: /完了条件|done条件|完了基準|definition of done|受け入れ条件|acceptance criteria/i,
         improvement: "\u8AB0\u304C\u898B\u3066\u3082\u5224\u5B9A\u3067\u304D\u308B\u5B8C\u4E86\u6761\u4EF6\u3092\u7B87\u6761\u66F8\u304D\u3067\u5B9A\u7FA9\u3059\u308B"
       },
       {
         category: "design",
+        id: "design.change-targets",
         label: "\u5909\u66F4\u5BFE\u8C61\u304C\u66F8\u304B\u308C\u3066\u3044\u308B",
         pattern: /変更対象|対象ファイル|変更点|変更内容/i,
         improvement: "\u5909\u66F4\u5BFE\u8C61\u306E\u30D5\u30A1\u30A4\u30EB\u30FB\u30E2\u30B8\u30E5\u30FC\u30EB\u3092\u5217\u6319\u3059\u308B"
       },
       {
         category: "design",
+        id: "design.existing-impact",
         label: "\u65E2\u5B58\u4ED5\u69D8\u3078\u306E\u5F71\u97FF\u304C\u3042\u308B",
         pattern: /既存|影響|impact|互換性/i,
         improvement: "\u65E2\u5B58\u6A5F\u80FD\u3078\u306E\u5F71\u97FF\u3068\u4E92\u63DB\u6027\u3092\u660E\u8A18\u3059\u308B"
       },
       {
         category: "design",
+        id: "design.api-io",
         label: "API\u5165\u51FA\u529B\u304C\u3042\u308B",
         pattern: /api|エンドポイント|リクエスト|レスポンス|入出力/i,
         improvement: "\u30A8\u30F3\u30C9\u30DD\u30A4\u30F3\u30C8\u306E\u5165\u51FA\u529B\u4ED5\u69D8\u3092\u66F8\u304F"
       },
       {
         category: "design",
+        id: "design.error-handling",
         label: "\u30A8\u30E9\u30FC\u30B1\u30FC\u30B9\u304C\u3042\u308B",
         pattern: /エラー|失敗|error|failure/i,
         improvement: "\u5931\u6557\u6642\u306E\u6319\u52D5\u30FB\u30A8\u30E9\u30FC\u30CF\u30F3\u30C9\u30EA\u30F3\u30B0\u65B9\u91DD\u3092\u66F8\u304F"
       },
       {
         category: "design",
+        id: "design.rollback",
         label: "\u30ED\u30FC\u30EB\u30D0\u30C3\u30AF\u65B9\u91DD\u304C\u3042\u308B",
         pattern: /ロールバック|rollback|切り戻し/i,
         improvement: "\u554F\u984C\u767A\u751F\u6642\u306E\u5207\u308A\u623B\u3057\u624B\u9806\u3092\u66F8\u304F"
       },
       {
         category: "design",
+        id: "design.flow",
         label: "\u51E6\u7406\u30D5\u30ED\u30FC\u304C\u8AAC\u660E\u3055\u308C\u3066\u3044\u308B",
         pattern: /フロー|流れ|シーケンス|flow|sequence/i,
         improvement: "\u4E3B\u8981\u306A\u51E6\u7406\u306E\u6D41\u308C\u3092\u56F3\u307E\u305F\u306F\u7B87\u6761\u66F8\u304D\u3067\u66F8\u304F"
       },
       {
         category: "plan",
+        id: "plan.task-breakdown",
         label: "\u30BF\u30B9\u30AF\u304C\u5206\u89E3\u3055\u308C\u3066\u3044\u308B",
         pattern: /- \[[ x]\]|実装タスク|タスク一覧|task list/i,
         improvement: "\u5B9F\u884C\u53EF\u80FD\u306A\u5358\u4F4D\u306E\u30BF\u30B9\u30AF\u3078\u30C1\u30A7\u30C3\u30AF\u30EA\u30B9\u30C8\u5F62\u5F0F\u3067\u5206\u89E3\u3059\u308B"
       },
       {
         category: "plan",
+        id: "plan.dependencies",
         label: "\u4F9D\u5B58\u95A2\u4FC2\u30FB\u9806\u5E8F\u304C\u3042\u308B",
         pattern: /依存|順序|ブロッカー|並行|depends?|order|blocker/i,
         improvement: "\u30BF\u30B9\u30AF\u540C\u58EB\u306E\u4F9D\u5B58\u95A2\u4FC2\u3068\u7740\u624B\u9806\u5E8F\u3092\u660E\u8A18\u3059\u308B"
       },
       {
         category: "plan",
+        id: "plan.risks",
         label: "\u30EA\u30B9\u30AF\u30FB\u61F8\u5FF5\u304C\u3042\u308B",
         pattern: /リスク|懸念|不確実|risk|concern/i,
         improvement: "\u4E0D\u78BA\u5B9F\u306A\u70B9\u30FB\u3046\u307E\u304F\u3044\u304B\u306A\u3044\u53EF\u80FD\u6027\u304C\u3042\u308B\u7B87\u6240\u3092\u66F8\u304D\u51FA\u3059"
       },
       {
         category: "plan",
+        id: "plan.done-criteria",
         label: "\u5B8C\u4E86\u6761\u4EF6\u304C\u3042\u308B",
         pattern: /完了条件|done条件|完了基準|definition of done|受け入れ条件|acceptance criteria/i,
         improvement: "\u4F55\u3092\u3082\u3063\u3066\u5B8C\u4E86\u3068\u307F\u306A\u3059\u304B\u3092\u691C\u8A3C\u53EF\u80FD\u306A\u5F62\u3067\u66F8\u304F"
       },
       {
         category: "test",
+        id: "test.happy-path",
         label: "\u6B63\u5E38\u7CFB",
         pattern: /正常系|happy path/i,
         improvement: "\u6B63\u5E38\u7CFB\u306E\u30C6\u30B9\u30C8\u89B3\u70B9\u3092\u8FFD\u8A18\u3059\u308B"
       },
       {
         category: "test",
+        id: "test.error-cases",
         label: "\u7570\u5E38\u7CFB",
         pattern: /異常系|エラー|error case/i,
         improvement: "\u7570\u5E38\u7CFB\u306E\u30C6\u30B9\u30C8\u89B3\u70B9\u3092\u8FFD\u8A18\u3059\u308B"
       },
       {
         category: "test",
+        id: "test.boundary",
         label: "\u5883\u754C\u5024",
         pattern: /境界値|boundary/i,
         improvement: "\u5883\u754C\u5024\u306E\u30C6\u30B9\u30C8\u89B3\u70B9\u3092\u8FFD\u8A18\u3059\u308B"
       },
       {
         category: "test",
+        id: "test.regression",
         label: "\u65E2\u5B58\u6A5F\u80FD\u3078\u306E\u5F71\u97FF",
         pattern: /既存機能|regression|デグレ|回帰/i,
         improvement: "\u30EA\u30B0\u30EC\u30C3\u30B7\u30E7\u30F3\u78BA\u8A8D\u306E\u89B3\u70B9\u3092\u8FFD\u8A18\u3059\u308B"
       },
       {
         category: "test",
+        id: "test.manual-checks",
         label: "\u624B\u52D5\u78BA\u8A8D\u9805\u76EE",
         pattern: /手動確認|manual check|手動テスト/i,
         improvement: "\u624B\u52D5\u3067\u78BA\u8A8D\u3059\u3079\u304D\u9805\u76EE\u3092\u5217\u6319\u3059\u308B"
       },
       {
         category: "test",
+        id: "test.test-commands",
         label: "\u5B9F\u884C\u3057\u305F\u30C6\u30B9\u30C8\u30B3\u30DE\u30F3\u30C9",
         pattern: /npm test|vitest|pytest|phpunit|artisan test|実行コマンド/i,
         improvement: "\u30C6\u30B9\u30C8\u306E\u5B9F\u884C\u30B3\u30DE\u30F3\u30C9\u3092\u660E\u8A18\u3059\u308B"
       },
       {
         category: "aiInstructions",
+        id: "ai-instructions.goal",
         label: "\u76EE\u7684\u304C\u660E\u78BA",
         pattern: /目的|purpose|goal/i,
         improvement: "AI\u6307\u793A\u306B\u76EE\u7684\u3092\u660E\u8A18\u3059\u308B"
       },
       {
         category: "aiInstructions",
+        id: "ai-instructions.scope",
         label: "\u5909\u66F4\u7BC4\u56F2\u304C\u9650\u5B9A\u3055\u308C\u3066\u3044\u308B",
         pattern: /変更範囲|対象範囲|scope|対象ファイル/i,
         improvement: "AI\u304C\u89E6\u3063\u3066\u3088\u3044\u7BC4\u56F2\u3092\u9650\u5B9A\u3059\u308B"
       },
       {
         category: "aiInstructions",
+        id: "ai-instructions.prohibitions",
         label: "\u7981\u6B62\u4E8B\u9805\u304C\u3042\u308B",
         pattern: /禁止|しない|never|don'?t|やらない/i,
         improvement: "\u3084\u3063\u3066\u306F\u3044\u3051\u306A\u3044\u3053\u3068\u3092\u660E\u8A18\u3059\u308B"
       },
       {
         category: "aiInstructions",
+        id: "ai-instructions.references",
         label: "\u53C2\u7167\u30D5\u30A1\u30A4\u30EB\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u308B",
         pattern: /参照|reference|該当ファイル|ファイルパス/i,
         improvement: "\u53C2\u7167\u3059\u3079\u304D\u30D5\u30A1\u30A4\u30EB\u30FB\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u3092\u6307\u5B9A\u3059\u308B"
       },
       {
         category: "aiInstructions",
+        id: "ai-instructions.done-criteria",
         label: "\u5B8C\u4E86\u6761\u4EF6\u304C\u3042\u308B",
         pattern: /完了条件|done|完了基準/i,
         improvement: "AI\u30BF\u30B9\u30AF\u306E\u5B8C\u4E86\u6761\u4EF6\u3092\u5B9A\u7FA9\u3059\u308B"
@@ -43083,12 +43114,14 @@ function escapeHtml(s) {
 }
 
 // src/commands/doctor.ts
+init_rc();
 init_logger();
 function scoreColor(score) {
   return score >= 80 ? import_picocolors2.default.green : score >= 50 ? import_picocolors2.default.yellow : import_picocolors2.default.red;
 }
 function runDeep(cwd, options) {
-  const report = runDeepDoctor(cwd, options.since ?? "main");
+  const rc = readRc(cwd);
+  const report = runDeepDoctor(cwd, options.since ?? "main", rc.doctor?.deep?.disable ?? []);
   if (options.report) {
     const files = writeDeepReports(report, options.report);
     for (const f of files) log.step(`\u30EC\u30DD\u30FC\u30C8\u51FA\u529B: ${f}`);

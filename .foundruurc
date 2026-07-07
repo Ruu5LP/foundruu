@@ -1,0 +1,7 @@
+{
+  "doctor": {
+    "deep": {
+      "disable": ["design.api-io", "design.rollback"]
+    }
+  }
+}
