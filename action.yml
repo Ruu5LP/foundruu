@@ -24,9 +24,9 @@ inputs:
     required: false
     default: "false"
   github-token:
-    description: PR コメント投稿に使うトークン(デフォルト: github.token)
+    description: "PR コメント投稿に使うトークン(デフォルト: github.token)"
     required: false
-    default: ${{ github.token }}
+    default: "${{ github.token }}"
 
 runs:
   using: composite
