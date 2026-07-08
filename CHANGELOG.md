@@ -6,6 +6,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`foundruu hooks install` / `uninstall` / `status`**: git pre-commit フックの管理コマンドを追加。コミット前に `foundruu doctor` を自動実行し、fail があるコミットをその場で中止する（緊急時は `git commit --no-verify`）。生成フックにはマーカーを埋め込み、FoundRuu 以外の既存フックは `--force` なしでは上書きせず、削除も自分が生成したものに限る
+- doctor に **進行中セッションの要件チェック**（`session-requirements`, warn）を追加。現在のセッションがあるのに requirements.md が未記入の場合に警告し、「要件なしで実装が進む」状態を検知する
+
 ### Changed
 
 - `init` の JSON パッチ適用（`package.json` 等）で、**init 開始前から存在していた値はテンプレートで上書きせず維持**するようにした。従来はテンプレート側の値で黙って上書きされ、後入れ導入時に `engines` や `scripts` が壊れることがあった。維持した箇所は `⚠ 既存の設定値を維持しました` として差分（既存値 / テンプレート値）を一覧表示する。テンプレートレイヤー同士（base → language → features）の意図的な上書きは従来どおり後勝ちで合成される

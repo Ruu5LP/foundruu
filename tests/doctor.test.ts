@@ -97,3 +97,28 @@ describe("runDoctorFix", () => {
     expect(fs.existsSync(path.join(tmp, "README.md"))).toBe(false);
   });
 });
+
+describe("session-requirements チェック", () => {
+  const write = (rel: string, content: string) => {
+    const full = path.join(tmp, rel);
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    fs.writeFileSync(full, content);
+  };
+  const result = () => runDoctor(tmp).results.find((r) => r.id === "session-requirements");
+
+  it("進行中セッションが無ければ pass", () => {
+    expect(result()?.status).toBe("pass");
+  });
+
+  it("進行中セッションの requirements.md が空なら warn", () => {
+    write(".ai/sessions/.current", "feature-x\n");
+    write(".ai/sessions/feature-x/requirements.md", "  \n");
+    expect(result()?.status).toBe("warn");
+  });
+
+  it("requirements.md が記入済みなら pass", () => {
+    write(".ai/sessions/.current", "feature-x\n");
+    write(".ai/sessions/feature-x/requirements.md", "# 要件\n- やること\n");
+    expect(result()?.status).toBe("pass");
+  });
+});

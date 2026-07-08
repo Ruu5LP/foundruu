@@ -86,6 +86,32 @@ program
     }
   );
 
+const hooks = program
+  .command("hooks")
+  .description("git フックを管理する(コミット前に doctor を実行するガードレール)");
+hooks
+  .command("install")
+  .description("pre-commit フックを導入する(doctor fail でコミットを中止)")
+  .option("-f, --force", "既存の pre-commit フックを上書きする")
+  .action(async (opts: { force?: boolean }) => {
+    const { installHooks } = await import("./commands/hooks.js");
+    await wrap(() => installHooks(process.cwd(), opts));
+  });
+hooks
+  .command("uninstall")
+  .description("FoundRuu が導入した pre-commit フックを削除する")
+  .action(async () => {
+    const { uninstallHooks } = await import("./commands/hooks.js");
+    await wrap(() => uninstallHooks(process.cwd()));
+  });
+hooks
+  .command("status")
+  .description("pre-commit フックの導入状態を表示する")
+  .action(async () => {
+    const { hooksStatus } = await import("./commands/hooks.js");
+    await wrap(() => hooksStatus(process.cwd()));
+  });
+
 program
   .command("update")
   .description(

@@ -151,6 +151,23 @@ export const checks: DoctorCheck[] = [
     check: (ctx) => ctx.exists(".ai/prompts"),
   },
   {
+    id: "session-requirements",
+    label: "進行中セッションの要件",
+    category: "AI開発",
+    severity: "warn",
+    hint: "進行中セッションの requirements.md が未記入です。実装を始める前に要件を書いてください",
+    check: (ctx) => {
+      // 進行中セッションが無ければ対象外(pass)。あるのに要件が空なら「要件なしで実装が進む」兆候
+      const currentFile = path.join(ctx.cwd, ".ai", "sessions", ".current");
+      if (!fs.existsSync(currentFile)) return true;
+      const name = fs.readFileSync(currentFile, "utf8").trim();
+      if (!name) return true;
+      const requirements = path.join(ctx.cwd, ".ai", "sessions", name, "requirements.md");
+      if (!fs.existsSync(requirements)) return false;
+      return fs.readFileSync(requirements, "utf8").trim().length > 0;
+    },
+  },
+  {
     id: "foundruu-config",
     label: "FoundRuu 設定 (foundruu.json)",
     category: "AI開発",

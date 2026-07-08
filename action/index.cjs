@@ -1258,13 +1258,13 @@ var require_ast = __commonJS({
         helperExpression: function helperExpression(node) {
           return node.type === "SubExpression" || (node.type === "MustacheStatement" || node.type === "BlockStatement") && !!(node.params && node.params.length || node.hash);
         },
-        scopedId: function scopedId(path21) {
-          return /^\.|this\b/.test(path21.original);
+        scopedId: function scopedId(path22) {
+          return /^\.|this\b/.test(path22.original);
         },
         // an ID is simple if it only has one part, and that part is not
         // `..` or `this`.
-        simpleId: function simpleId(path21) {
-          return path21.parts.length === 1 && !AST.helpers.scopedId(path21) && !path21.depth;
+        simpleId: function simpleId(path22) {
+          return path22.parts.length === 1 && !AST.helpers.scopedId(path22) && !path22.depth;
         }
       }
     };
@@ -2334,12 +2334,12 @@ var require_helpers2 = __commonJS({
         loc
       };
     }
-    function prepareMustache(path21, params, hash2, open, strip, locInfo) {
+    function prepareMustache(path22, params, hash2, open, strip, locInfo) {
       var escapeFlag = open.charAt(3) || open.charAt(2), escaped = escapeFlag !== "{" && escapeFlag !== "&";
       var decorator = /\*/.test(open);
       return {
         type: decorator ? "Decorator" : "MustacheStatement",
-        path: path21,
+        path: path22,
         params,
         hash: hash2,
         escaped,
@@ -2657,9 +2657,9 @@ var require_compiler = __commonJS({
       },
       DecoratorBlock: function DecoratorBlock(decorator) {
         var program3 = decorator.program && this.compileProgram(decorator.program);
-        var params = this.setupFullMustacheParams(decorator, program3, void 0), path21 = decorator.path;
+        var params = this.setupFullMustacheParams(decorator, program3, void 0), path22 = decorator.path;
         this.useDecorators = true;
-        this.opcode("registerDecorator", params.length, path21.original);
+        this.opcode("registerDecorator", params.length, path22.original);
       },
       PartialStatement: function PartialStatement(partial2) {
         this.usePartial = true;
@@ -2723,46 +2723,46 @@ var require_compiler = __commonJS({
         }
       },
       ambiguousSexpr: function ambiguousSexpr(sexpr, program3, inverse) {
-        var path21 = sexpr.path, name = path21.parts[0], isBlock = program3 != null || inverse != null;
-        this.opcode("getContext", path21.depth);
+        var path22 = sexpr.path, name = path22.parts[0], isBlock = program3 != null || inverse != null;
+        this.opcode("getContext", path22.depth);
         this.opcode("pushProgram", program3);
         this.opcode("pushProgram", inverse);
-        path21.strict = true;
-        this.accept(path21);
+        path22.strict = true;
+        this.accept(path22);
         this.opcode("invokeAmbiguous", name, isBlock);
       },
       simpleSexpr: function simpleSexpr(sexpr) {
-        var path21 = sexpr.path;
-        path21.strict = true;
-        this.accept(path21);
+        var path22 = sexpr.path;
+        path22.strict = true;
+        this.accept(path22);
         this.opcode("resolvePossibleLambda");
       },
       helperSexpr: function helperSexpr(sexpr, program3, inverse) {
-        var params = this.setupFullMustacheParams(sexpr, program3, inverse), path21 = sexpr.path, name = path21.parts[0];
+        var params = this.setupFullMustacheParams(sexpr, program3, inverse), path22 = sexpr.path, name = path22.parts[0];
         if (this.options.knownHelpers[name]) {
           this.opcode("invokeKnownHelper", params.length, name);
         } else if (this.options.knownHelpersOnly) {
           throw new _exception2["default"]("You specified knownHelpersOnly, but used the unknown helper " + name, sexpr);
         } else {
-          path21.strict = true;
-          path21.falsy = true;
-          this.accept(path21);
-          this.opcode("invokeHelper", params.length, path21.original, _ast2["default"].helpers.simpleId(path21));
+          path22.strict = true;
+          path22.falsy = true;
+          this.accept(path22);
+          this.opcode("invokeHelper", params.length, path22.original, _ast2["default"].helpers.simpleId(path22));
         }
       },
-      PathExpression: function PathExpression(path21) {
-        this.addDepth(path21.depth);
-        this.opcode("getContext", path21.depth);
-        var name = path21.parts[0], scoped = _ast2["default"].helpers.scopedId(path21), blockParamId = !path21.depth && !scoped && this.blockParamIndex(name);
+      PathExpression: function PathExpression(path22) {
+        this.addDepth(path22.depth);
+        this.opcode("getContext", path22.depth);
+        var name = path22.parts[0], scoped = _ast2["default"].helpers.scopedId(path22), blockParamId = !path22.depth && !scoped && this.blockParamIndex(name);
         if (blockParamId) {
-          this.opcode("lookupBlockParam", blockParamId, path21.parts);
+          this.opcode("lookupBlockParam", blockParamId, path22.parts);
         } else if (!name) {
           this.opcode("pushContext");
-        } else if (path21.data) {
+        } else if (path22.data) {
           this.options.data = true;
-          this.opcode("lookupData", path21.depth, path21.parts, path21.strict);
+          this.opcode("lookupData", path22.depth, path22.parts, path22.strict);
         } else {
-          this.opcode("lookupOnContext", path21.parts, path21.falsy, path21.strict, scoped);
+          this.opcode("lookupOnContext", path22.parts, path22.falsy, path22.strict, scoped);
         }
       },
       StringLiteral: function StringLiteral(string4) {
@@ -3112,16 +3112,16 @@ var require_util = __commonJS({
     }
     exports2.urlGenerate = urlGenerate;
     function normalize(aPath) {
-      var path21 = aPath;
+      var path22 = aPath;
       var url2 = urlParse(aPath);
       if (url2) {
         if (!url2.path) {
           return aPath;
         }
-        path21 = url2.path;
+        path22 = url2.path;
       }
-      var isAbsolute = exports2.isAbsolute(path21);
-      var parts = path21.split(/\/+/);
+      var isAbsolute = exports2.isAbsolute(path22);
+      var parts = path22.split(/\/+/);
       for (var part, up = 0, i = parts.length - 1; i >= 0; i--) {
         part = parts[i];
         if (part === ".") {
@@ -3138,15 +3138,15 @@ var require_util = __commonJS({
           }
         }
       }
-      path21 = parts.join("/");
-      if (path21 === "") {
-        path21 = isAbsolute ? "/" : ".";
+      path22 = parts.join("/");
+      if (path22 === "") {
+        path22 = isAbsolute ? "/" : ".";
       }
       if (url2) {
-        url2.path = path21;
+        url2.path = path22;
         return urlGenerate(url2);
       }
-      return path21;
+      return path22;
     }
     exports2.normalize = normalize;
     function join(aRoot, aPath) {
@@ -5929,8 +5929,8 @@ var require_printer = __commonJS({
       return this.accept(sexpr.path) + " " + params + hash2;
     };
     PrintVisitor.prototype.PathExpression = function(id) {
-      var path21 = id.parts.join("/");
-      return (id.data ? "@" : "") + "PATH:" + path21;
+      var path22 = id.parts.join("/");
+      return (id.data ? "@" : "") + "PATH:" + path22;
     };
     PrintVisitor.prototype.StringLiteral = function(string4) {
       return '"' + string4.value + '"';
@@ -5969,8 +5969,8 @@ var require_lib = __commonJS({
     handlebars.print = printer.print;
     module2.exports = handlebars;
     function extension(module3, filename) {
-      var fs20 = require("fs");
-      var templateString = fs20.readFileSync(filename, "utf8");
+      var fs21 = require("fs");
+      var templateString = fs21.readFileSync(filename, "utf8");
       module3.exports = handlebars.compile(templateString);
     }
     if (typeof require !== "undefined" && require.extensions) {
@@ -6471,6 +6471,22 @@ SOFTWARE.
         severity: "error",
         hint: ".ai/prompts \u304C\u3042\u308A\u307E\u305B\u3093\uFF08foundruu workflow install \u3067\u5C0E\u5165\u3067\u304D\u307E\u3059\uFF09",
         check: (ctx) => ctx.exists(".ai/prompts")
+      },
+      {
+        id: "session-requirements",
+        label: "\u9032\u884C\u4E2D\u30BB\u30C3\u30B7\u30E7\u30F3\u306E\u8981\u4EF6",
+        category: "AI\u958B\u767A",
+        severity: "warn",
+        hint: "\u9032\u884C\u4E2D\u30BB\u30C3\u30B7\u30E7\u30F3\u306E requirements.md \u304C\u672A\u8A18\u5165\u3067\u3059\u3002\u5B9F\u88C5\u3092\u59CB\u3081\u308B\u524D\u306B\u8981\u4EF6\u3092\u66F8\u3044\u3066\u304F\u3060\u3055\u3044",
+        check: (ctx) => {
+          const currentFile2 = import_path7.default.join(ctx.cwd, ".ai", "sessions", ".current");
+          if (!import_fs7.default.existsSync(currentFile2)) return true;
+          const name = import_fs7.default.readFileSync(currentFile2, "utf8").trim();
+          if (!name) return true;
+          const requirements = import_path7.default.join(ctx.cwd, ".ai", "sessions", name, "requirements.md");
+          if (!import_fs7.default.existsSync(requirements)) return false;
+          return import_fs7.default.readFileSync(requirements, "utf8").trim().length > 0;
+        }
       },
       {
         id: "foundruu-config",
@@ -7268,6 +7284,102 @@ var init_session = __esm({
   }
 });
 
+// src/commands/hooks.ts
+var hooks_exports = {};
+__export(hooks_exports, {
+  hooksStatus: () => hooksStatus,
+  installHooks: () => installHooks,
+  uninstallHooks: () => uninstallHooks
+});
+function hooksDir(cwd) {
+  let rel;
+  try {
+    rel = (0, import_child_process4.execFileSync)("git", ["-C", cwd, "rev-parse", "--git-path", "hooks"], { stdio: "pipe" }).toString().trim();
+  } catch {
+    throw new Error("git \u30EA\u30DD\u30B8\u30C8\u30EA\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002git init \u5F8C\u306B\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+  }
+  return import_path17.default.isAbsolute(rel) ? rel : import_path17.default.join(cwd, rel);
+}
+function hookFile(cwd) {
+  return import_path17.default.join(hooksDir(cwd), "pre-commit");
+}
+function isOurs(file2) {
+  return import_fs17.default.existsSync(file2) && import_fs17.default.readFileSync(file2, "utf8").includes(HOOK_MARKER);
+}
+function installHooks(cwd, options = {}) {
+  const file2 = hookFile(cwd);
+  if (import_fs17.default.existsSync(file2) && !isOurs(file2) && !options.force) {
+    throw new Error(
+      `\u65E2\u5B58\u306E pre-commit \u30D5\u30C3\u30AF\u304C\u3042\u308A\u307E\u3059: ${file2}
+  \u4E0A\u66F8\u304D\u3059\u308B\u5834\u5408\u306F --force \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u65E2\u5B58\u30D5\u30C3\u30AF\u306E\u5185\u5BB9\u306F\u5931\u308F\u308C\u307E\u3059\uFF09\u3002`
+    );
+  }
+  import_fs17.default.mkdirSync(import_path17.default.dirname(file2), { recursive: true });
+  import_fs17.default.writeFileSync(file2, HOOK_SCRIPT, { mode: 493 });
+  import_fs17.default.chmodSync(file2, 493);
+  log.success("pre-commit \u30D5\u30C3\u30AF\u3092\u5C0E\u5165\u3057\u307E\u3057\u305F: \u30B3\u30DF\u30C3\u30C8\u524D\u306B foundruu doctor \u304C\u5B9F\u884C\u3055\u308C\u307E\u3059");
+  log.info("  fail \u304C\u3042\u308B\u3068\u30B3\u30DF\u30C3\u30C8\u306F\u4E2D\u6B62\u3055\u308C\u307E\u3059\uFF08\u7DCA\u6025\u6642: git commit --no-verify\uFF09");
+}
+function uninstallHooks(cwd) {
+  const file2 = hookFile(cwd);
+  if (!import_fs17.default.existsSync(file2)) {
+    log.info("pre-commit \u30D5\u30C3\u30AF\u306F\u5C0E\u5165\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002");
+    return;
+  }
+  if (!isOurs(file2)) {
+    throw new Error(`pre-commit \u30D5\u30C3\u30AF\u306F FoundRuu \u304C\u751F\u6210\u3057\u305F\u3082\u306E\u3067\u306F\u306A\u3044\u305F\u3081\u524A\u9664\u3057\u307E\u305B\u3093: ${file2}`);
+  }
+  import_fs17.default.rmSync(file2);
+  log.success("pre-commit \u30D5\u30C3\u30AF\u3092\u524A\u9664\u3057\u307E\u3057\u305F");
+}
+function hooksStatus(cwd) {
+  const file2 = hookFile(cwd);
+  if (isOurs(file2)) {
+    log.info("pre-commit \u30D5\u30C3\u30AF: \u5C0E\u5165\u6E08\u307F\uFF08\u30B3\u30DF\u30C3\u30C8\u524D\u306B foundruu doctor \u304C\u5B9F\u884C\u3055\u308C\u307E\u3059\uFF09");
+  } else if (import_fs17.default.existsSync(file2)) {
+    log.info("pre-commit \u30D5\u30C3\u30AF: FoundRuu \u4EE5\u5916\u306E\u30D5\u30C3\u30AF\u304C\u5B58\u5728\u3057\u307E\u3059");
+    log.info("  \u5C0E\u5165\u3059\u308B\u5834\u5408: foundruu hooks install --force\uFF08\u65E2\u5B58\u30D5\u30C3\u30AF\u306F\u4E0A\u66F8\u304D\u3055\u308C\u307E\u3059\uFF09");
+  } else {
+    log.info("pre-commit \u30D5\u30C3\u30AF: \u672A\u5C0E\u5165");
+    log.info("  \u5C0E\u5165\u3059\u308B\u5834\u5408: foundruu hooks install");
+  }
+}
+var import_child_process4, import_fs17, import_path17, HOOK_MARKER, HOOK_SCRIPT;
+var init_hooks = __esm({
+  "src/commands/hooks.ts"() {
+    "use strict";
+    import_child_process4 = require("child_process");
+    import_fs17 = __toESM(require("fs"));
+    import_path17 = __toESM(require("path"));
+    init_logger();
+    HOOK_MARKER = "# FoundRuu pre-commit hook";
+    HOOK_SCRIPT = `#!/bin/sh
+${HOOK_MARKER} \u2014 foundruu hooks install \u3067\u751F\u6210 (\u524A\u9664: foundruu hooks uninstall)
+# \u7DCA\u6025\u6642\u306E\u30B9\u30AD\u30C3\u30D7: git commit --no-verify
+
+if [ -x "./node_modules/.bin/foundruu" ]; then
+  FOUNDRUU="./node_modules/.bin/foundruu"
+elif command -v foundruu >/dev/null 2>&1; then
+  FOUNDRUU="foundruu"
+elif [ -f "./dist/cli.js" ] && grep -q '"name": "foundruu"' package.json 2>/dev/null; then
+  # foundruu \u81EA\u8EAB\u306E\u30EA\u30DD\u30B8\u30C8\u30EA(\u30C9\u30C3\u30B0\u30D5\u30FC\u30C7\u30A3\u30F3\u30B0)
+  FOUNDRUU="node ./dist/cli.js"
+else
+  echo "foundruu \u304C\u898B\u3064\u304B\u3089\u306A\u3044\u305F\u3081 pre-commit \u30C1\u30A7\u30C3\u30AF\u3092\u30B9\u30AD\u30C3\u30D7\u3057\u307E\u3057\u305F" >&2
+  exit 0
+fi
+
+echo "FoundRuu pre-commit: foundruu doctor \u3092\u5B9F\u884C\u3057\u307E\u3059"
+$FOUNDRUU doctor || {
+  echo "" >&2
+  echo "foundruu doctor \u304C fail \u306E\u305F\u3081\u30B3\u30DF\u30C3\u30C8\u3092\u4E2D\u6B62\u3057\u307E\u3057\u305F\u3002fail \u9805\u76EE\u3092\u89E3\u6D88\u3057\u3066\u304F\u3060\u3055\u3044\u3002" >&2
+  echo "(\u7DCA\u6025\u6642\u306F git commit --no-verify \u3067\u30B9\u30AD\u30C3\u30D7\u3067\u304D\u307E\u3059)" >&2
+  exit 1
+}
+`;
+  }
+});
+
 // node_modules/zod/v3/helpers/util.js
 var util, objectUtil, ZodParsedType, getParsedType;
 var init_util = __esm({
@@ -7673,8 +7785,8 @@ var init_parseUtil = __esm({
     init_errors();
     init_en();
     makeIssue = (params) => {
-      const { data, path: path21, errorMaps, issueData } = params;
-      const fullPath = [...path21, ...issueData.path || []];
+      const { data, path: path22, errorMaps, issueData } = params;
+      const fullPath = [...path22, ...issueData.path || []];
       const fullIssue = {
         ...issueData,
         path: fullPath
@@ -7954,11 +8066,11 @@ var init_types = __esm({
     init_parseUtil();
     init_util();
     ParseInputLazyPath = class {
-      constructor(parent, value, path21, key) {
+      constructor(parent, value, path22, key) {
         this._cachedPath = [];
         this.parent = parent;
         this.data = value;
-        this._path = path21;
+        this._path = path22;
         this._key = key;
       }
       get path() {
@@ -11457,10 +11569,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path21) {
-  if (!path21)
+function getElementAtPath(obj, path22) {
+  if (!path22)
     return obj;
-  return path21.reduce((acc, key) => acc?.[key], obj);
+  return path22.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -11788,11 +11900,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path21, issues) {
+function prefixIssues(path22, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path21);
+    iss.path.unshift(path22);
     return iss;
   });
 }
@@ -12009,16 +12121,16 @@ function flattenError(error51, mapper = (issue2) => issue2.message) {
 }
 function formatError(error51, mapper = (issue2) => issue2.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error52, path21 = []) => {
+  const processError = (error52, path22 = []) => {
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path21, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path22, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path21, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path22, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path21, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path22, ...issue2.path]);
       } else {
-        const fullpath = [...path21, ...issue2.path];
+        const fullpath = [...path22, ...issue2.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue2));
         } else {
@@ -12045,17 +12157,17 @@ function formatError(error51, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error51, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error52, path21 = []) => {
+  const processError = (error52, path22 = []) => {
     var _a3, _b;
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path21, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path22, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path21, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path22, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path21, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path22, ...issue2.path]);
       } else {
-        const fullpath = [...path21, ...issue2.path];
+        const fullpath = [...path22, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -12087,8 +12199,8 @@ function treeifyError(error51, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path21 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path21) {
+  const path22 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path22) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -25768,13 +25880,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path21 = ref.slice(1).split("/").filter(Boolean);
-  if (path21.length === 0) {
+  const path22 = ref.slice(1).split("/").filter(Boolean);
+  if (path22.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path21[0] === defsKey) {
-    const key = path21[1];
+  if (path22[0] === defsKey) {
+    const key = path22[1];
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -33873,8 +33985,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path21) {
-      let input = path21;
+    function removeDotSegments(path22) {
+      let input = path22;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -34126,8 +34238,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path21, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path21 && path21 !== "/" ? path21 : void 0;
+        const [path22, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path22 && path22 !== "/" ? path22 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -37520,12 +37632,12 @@ var require_dist = __commonJS({
         throw new Error(`Unknown format "${name}"`);
       return f;
     };
-    function addFormats(ajv, list, fs20, exportName) {
+    function addFormats(ajv, list, fs21, exportName) {
       var _a3;
       var _b;
       (_a3 = (_b = ajv.opts.code).formats) !== null && _a3 !== void 0 ? _a3 : _b.formats = (0, codegen_1._)`require("ajv-formats/dist/formats").${exportName}`;
       for (const f of list)
-        ajv.addFormat(f, fs20[f]);
+        ajv.addFormat(f, fs21[f]);
     }
     module2.exports = exports2 = formatsPlugin;
     Object.defineProperty(exports2, "__esModule", { value: true });
@@ -39344,11 +39456,11 @@ async function runMcpServer(cwd) {
   await server.connect(transport);
   log.info(`foundruu MCP server v${cliVersion()} started (stdio)`);
 }
-var import_path17, resolveDir, text;
+var import_path18, resolveDir, text;
 var init_mcp2 = __esm({
   "src/commands/mcp.ts"() {
     "use strict";
-    import_path17 = __toESM(require("path"));
+    import_path18 = __toESM(require("path"));
     init_mcp();
     init_stdio2();
     init_zod();
@@ -39359,7 +39471,7 @@ var init_mcp2 = __esm({
     init_workflow();
     init_session();
     init_update();
-    resolveDir = (base, dir) => dir ? import_path17.default.resolve(base, dir) : base;
+    resolveDir = (base, dir) => dir ? import_path18.default.resolve(base, dir) : base;
     text = (value) => ({
       content: [
         {
@@ -39382,7 +39494,7 @@ function resolveToken() {
     if (process.env[env]) return process.env[env];
   }
   try {
-    return (0, import_child_process4.execFileSync)("gh", ["auth", "token"], { stdio: "pipe" }).toString().trim();
+    return (0, import_child_process5.execFileSync)("gh", ["auth", "token"], { stdio: "pipe" }).toString().trim();
   } catch {
     throw new Error(
       "GitHub \u30C8\u30FC\u30AF\u30F3\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002gh auth login \u3092\u5B9F\u884C\u3059\u308B\u304B GH_TOKEN \u3092\u8A2D\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002"
@@ -39390,14 +39502,14 @@ function resolveToken() {
   }
 }
 function latestReport(dir) {
-  if (!import_fs17.default.existsSync(dir)) return null;
-  const files = import_fs17.default.readdirSync(dir).filter((f) => /^foundruu-deep-report-.*\.json$/.test(f)).sort();
+  if (!import_fs18.default.existsSync(dir)) return null;
+  const files = import_fs18.default.readdirSync(dir).filter((f) => /^foundruu-deep-report-.*\.json$/.test(f)).sort();
   if (files.length === 0) return null;
   const name = files[files.length - 1];
-  return { file: import_path18.default.join(dir, name), name };
+  return { file: import_path19.default.join(dir, name), name };
 }
 async function runCloudPush(cwd, options) {
-  const dir = import_path18.default.resolve(cwd, options.dir ?? "reports");
+  const dir = import_path19.default.resolve(cwd, options.dir ?? "reports");
   const report = latestReport(dir);
   if (!report) {
     throw new Error(
@@ -39406,13 +39518,13 @@ async function runCloudPush(cwd, options) {
   }
   const config2 = readConfig(cwd);
   const repo = options.repo ?? config2?.cloud?.repo ?? DEFAULT_CLOUD_REPO;
-  const project = (options.project ?? config2?.projectName ?? import_path18.default.basename(cwd)).replace(
+  const project = (options.project ?? config2?.projectName ?? import_path19.default.basename(cwd)).replace(
     /[^\w.-]/g,
     "-"
   );
   const destPath = `reports/${project}/${report.name}`;
   const token = resolveToken();
-  const content = import_fs17.default.readFileSync(report.file);
+  const content = import_fs18.default.readFileSync(report.file);
   const res = await fetch(`https://api.github.com/repos/${repo}/contents/${destPath}`, {
     method: "PUT",
     headers: {
@@ -39438,13 +39550,13 @@ async function runCloudPush(cwd, options) {
     `\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9: https://${repo.split("/")[0].toLowerCase()}.github.io/${repo.split("/")[1]}/`
   );
 }
-var import_child_process4, import_fs17, import_path18, DEFAULT_CLOUD_REPO;
+var import_child_process5, import_fs18, import_path19, DEFAULT_CLOUD_REPO;
 var init_cloud = __esm({
   "src/commands/cloud.ts"() {
     "use strict";
-    import_child_process4 = require("child_process");
-    import_fs17 = __toESM(require("fs"));
-    import_path18 = __toESM(require("path"));
+    import_child_process5 = require("child_process");
+    import_fs18 = __toESM(require("fs"));
+    import_path19 = __toESM(require("path"));
     init_config();
     init_logger();
     DEFAULT_CLOUD_REPO = "Ruu5LP/foundruu-cloud";
@@ -39459,10 +39571,10 @@ __export(dashboard_exports, {
   runDashboard: () => runDashboard
 });
 function loadHistory(dir) {
-  if (!import_fs18.default.existsSync(dir)) return [];
-  return import_fs18.default.readdirSync(dir).filter((f) => /^foundruu-deep-report-.*\.json$/.test(f)).sort().map((f) => ({
+  if (!import_fs19.default.existsSync(dir)) return [];
+  return import_fs19.default.readdirSync(dir).filter((f) => /^foundruu-deep-report-.*\.json$/.test(f)).sort().map((f) => ({
     timestamp: f.replace(/^foundruu-deep-report-/, "").replace(/\.json$/, ""),
-    report: JSON.parse(import_fs18.default.readFileSync(import_path19.default.join(dir, f), "utf8"))
+    report: JSON.parse(import_fs19.default.readFileSync(import_path20.default.join(dir, f), "utf8"))
   }));
 }
 function trendSvg(history) {
@@ -39537,25 +39649,25 @@ ${actionsHtml}
 `;
 }
 function runDashboard(cwd, options) {
-  const dir = import_path19.default.resolve(cwd, options.dir ?? "reports");
+  const dir = import_path20.default.resolve(cwd, options.dir ?? "reports");
   const history = loadHistory(dir);
   if (history.length === 0) {
     log.warn(
-      `${import_path19.default.relative(cwd, dir) || "."} \u306B deep \u30EC\u30DD\u30FC\u30C8\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u307E\u305A foundruu doctor --deep --report ${options.dir ?? "reports"} \u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002`
+      `${import_path20.default.relative(cwd, dir) || "."} \u306B deep \u30EC\u30DD\u30FC\u30C8\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u307E\u305A foundruu doctor --deep --report ${options.dir ?? "reports"} \u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002`
     );
     process.exitCode = 1;
     return;
   }
-  const out2 = import_path19.default.resolve(cwd, options.out ?? import_path19.default.join(dir, "index.html"));
-  import_fs18.default.writeFileSync(out2, renderDashboard(history));
+  const out2 = import_path20.default.resolve(cwd, options.out ?? import_path20.default.join(dir, "index.html"));
+  import_fs19.default.writeFileSync(out2, renderDashboard(history));
   log.success(`\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9\u3092\u751F\u6210\u3057\u307E\u3057\u305F: ${out2}(\u30EC\u30DD\u30FC\u30C8${history.length}\u4EF6)`);
 }
-var import_fs18, import_path19, esc2;
+var import_fs19, import_path20, esc2;
 var init_dashboard = __esm({
   "src/commands/dashboard.ts"() {
     "use strict";
-    import_fs18 = __toESM(require("fs"));
-    import_path19 = __toESM(require("path"));
+    import_fs19 = __toESM(require("fs"));
+    import_path20 = __toESM(require("path"));
     init_logger();
     esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
@@ -41937,16 +42049,16 @@ Expecting one of '${allowedValues.join("', '")}'`);
    */
   _chainOrCallHooks(promise2, event) {
     let result = promise2;
-    const hooks = [];
+    const hooks2 = [];
     this._getCommandAndAncestors().reverse().filter((cmd) => cmd._lifeCycleHooks[event] !== void 0).forEach((hookedCommand) => {
       hookedCommand._lifeCycleHooks[event].forEach((callback) => {
-        hooks.push({ hookedCommand, callback });
+        hooks2.push({ hookedCommand, callback });
       });
     });
     if (event === "postAction") {
-      hooks.reverse();
+      hooks2.reverse();
     }
-    hooks.forEach((hookDetail) => {
+    hooks2.forEach((hookDetail) => {
       result = this._chainOrCall(result, () => {
         return hookDetail.callback(hookDetail.hookedCommand, this);
       });
@@ -42672,9 +42784,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path21) {
-    if (path21 === void 0) return this._executableDir;
-    this._executableDir = path21;
+  executableDir(path22) {
+    if (path22 === void 0) return this._executableDir;
+    this._executableDir = path22;
     return this;
   }
   /**
@@ -43543,6 +43655,19 @@ program2.command("doctor").description("\u30EA\u30DD\u30B8\u30C8\u30EA\u304CAI\u
     await wrap(() => runDoctorCommand(process.cwd(), opts));
   }
 );
+var hooks = program2.command("hooks").description("git \u30D5\u30C3\u30AF\u3092\u7BA1\u7406\u3059\u308B(\u30B3\u30DF\u30C3\u30C8\u524D\u306B doctor \u3092\u5B9F\u884C\u3059\u308B\u30AC\u30FC\u30C9\u30EC\u30FC\u30EB)");
+hooks.command("install").description("pre-commit \u30D5\u30C3\u30AF\u3092\u5C0E\u5165\u3059\u308B(doctor fail \u3067\u30B3\u30DF\u30C3\u30C8\u3092\u4E2D\u6B62)").option("-f, --force", "\u65E2\u5B58\u306E pre-commit \u30D5\u30C3\u30AF\u3092\u4E0A\u66F8\u304D\u3059\u308B").action(async (opts) => {
+  const { installHooks: installHooks2 } = await Promise.resolve().then(() => (init_hooks(), hooks_exports));
+  await wrap(() => installHooks2(process.cwd(), opts));
+});
+hooks.command("uninstall").description("FoundRuu \u304C\u5C0E\u5165\u3057\u305F pre-commit \u30D5\u30C3\u30AF\u3092\u524A\u9664\u3059\u308B").action(async () => {
+  const { uninstallHooks: uninstallHooks2 } = await Promise.resolve().then(() => (init_hooks(), hooks_exports));
+  await wrap(() => uninstallHooks2(process.cwd()));
+});
+hooks.command("status").description("pre-commit \u30D5\u30C3\u30AF\u306E\u5C0E\u5165\u72B6\u614B\u3092\u8868\u793A\u3059\u308B").action(async () => {
+  const { hooksStatus: hooksStatus2 } = await Promise.resolve().then(() => (init_hooks(), hooks_exports));
+  await wrap(() => hooksStatus2(process.cwd()));
+});
 program2.command("update").description(
   "Workflow / Prompt / Rules \u3092\u6700\u65B0\u3078\u66F4\u65B0\u3059\u308B\uFF08GitHub \u304B\u3089\u53D6\u5F97\u3001\u5931\u6557\u6642\u306F\u540C\u68B1\u30A2\u30BB\u30C3\u30C8\uFF09"
 ).option("-f, --force", "\u30E6\u30FC\u30B6\u30FC\u7DE8\u96C6\u6E08\u307F\u30D5\u30A1\u30A4\u30EB\u3082\u4E0A\u66F8\u304D\u3059\u308B").option("--diff", "\u5DEE\u5206\u306E\u8868\u793A\u306E\u307F\u3067\u66F8\u304D\u8FBC\u307E\u306A\u3044").option("--local", "GitHub \u304B\u3089\u53D6\u5F97\u305B\u305A CLI \u540C\u68B1\u30A2\u30BB\u30C3\u30C8\u3092\u4F7F\u3046").option(

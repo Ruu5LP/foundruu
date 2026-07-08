@@ -26,6 +26,7 @@ npm install && npm run build && npm link
 | `foundruu workflow install`                                           | Workflow / Prompt / Rules（`.ai/`）のみを既存リポジトリへ導入                                      |
 | `foundruu doctor [--json] [--fix]`                                    | リポジトリがAI開発可能な状態か診断（`--fix` で README/LICENSE/.gitignore/.env.example を自動生成） |
 | `foundruu doctor --deep [--since <ref>] [--report <dir>]`             | AI開発プロセス品質をスコア診断（md/html/json レポート出力可）                                      |
+| `foundruu hooks install` / `uninstall` / `status`                     | pre-commit フックを管理（コミット前に doctor を実行し、fail ならコミットを中止）                   |
 | `foundruu update [--force] [--diff] [--only <paths...>]`              | Workflow / Prompt / Rules を最新へ更新（パス指定・差分確認可）                                     |
 | `foundruu session start <name>` / `list` / `show` / `end` / `current` | AI開発セッションの作成 / 一覧 / 状態表示 / 完了 / 現在のセッション                                 |
 | `foundruu templates`                                                  | 利用可能なテンプレート一覧                                                                         |
@@ -92,7 +93,10 @@ JSON パッチは新規キーのみ追加します。既存の値とテンプレ
 ## Doctor のチェック項目
 
 README / LICENSE / .gitignore / .env.example / package.json・composer.json /
-Docker / GitHub Actions / AI Rules / Workflow / Prompt / foundruu.json
+Docker / GitHub Actions / AI Rules / Workflow / Prompt / 進行中セッションの要件 / foundruu.json
+
+`foundruu hooks install` で pre-commit フックを導入すると、コミット前に doctor が自動実行され、
+fail があるコミットはその場で止まります（緊急時は `git commit --no-verify`）。
 
 チェックは [src/doctor/checks.ts](src/doctor/checks.ts) に宣言的に定義されており、1エントリ追加するだけで拡張できます。
 `--json` 出力と exit code により GitHub Actions からも利用できます。
