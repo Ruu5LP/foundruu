@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-07-08
+
 ### Changed
 
 - **cloud push / dashboard を公式プラグイン [foundruu-plugin-cloud](plugins/foundruu-plugin-cloud/) へ切り出し**: 本体を「番人（守る）」に絞る方針（[docs/roadmap.md](docs/roadmap.md)）に基づき、計測・集約系の 2 コマンドを本体からプラグインへ移設。利用には `npm i -D foundruu-plugin-cloud`（本リポジトリでは `foundruu.json` の `plugins` でローカル読み込み）が必要。**breaking**: プラグインなしの環境では `foundruu dashboard` / `foundruu cloud push` は使えなくなる。foundruu-cloud リポジトリの Actions も要更新

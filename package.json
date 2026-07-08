@@ -1,6 +1,6 @@
 {
   "name": "foundruu",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "FoundRuu CLI - AI開発を標準化するためのプラットフォームCLI",
   "license": "MIT",
   "type": "commonjs",
