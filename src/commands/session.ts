@@ -1,88 +1,24 @@
-import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import pc from "picocolors";
 import { log } from "../core/logger";
+import {
+  clearCurrent,
+  readCurrent,
+  readStatus,
+  requireAiRoot,
+  sessionDir,
+  setCurrent,
+  writeStatus,
+} from "../core/session-store";
 
 /**
  * AI開発セッション管理(dev-workflow の bin/ai-session を TypeScript へ移植)。
  * .ai/templates/session/ を元に .ai/sessions/<name>/ へ作業ファイル一式を作成する。
+ * 状態の読み書きは core/session-store.ts が担う。
  */
 
-/** .ai を持つリポジトリルートを特定する(git toplevel 優先、なければ上方向へ探索) */
-export function findAiRoot(cwd: string): string | null {
-  try {
-    const top = execFileSync("git", ["-C", cwd, "rev-parse", "--show-toplevel"], { stdio: "pipe" })
-      .toString()
-      .trim();
-    if (fs.existsSync(path.join(top, ".ai"))) return top;
-  } catch {
-    // git 管理外は上方向探索へフォールバック
-  }
-  let dir = path.resolve(cwd);
-  for (;;) {
-    if (fs.existsSync(path.join(dir, ".ai"))) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) return null;
-    dir = parent;
-  }
-}
-
-function requireAiRoot(cwd: string): string {
-  const root = findAiRoot(cwd);
-  if (!root) {
-    throw new Error(
-      ".ai ディレクトリが見つかりません。foundruu workflow install で導入するか、リポジトリ内で実行してください。"
-    );
-  }
-  return root;
-}
-
-// セッションのメタ情報はセッションディレクトリの外に置き、作業ファイルを汚さない。
-//   .ai/sessions/.current            … 現在のセッション名
-//   .ai/sessions/.status/<name>.json … 各セッションの開始/終了時刻
-interface SessionStatus {
-  startedAt: string;
-  endedAt?: string;
-}
-
-const sessionsRoot = (root: string): string => path.join(root, ".ai", "sessions");
-const currentFile = (root: string): string => path.join(sessionsRoot(root), ".current");
-const statusFile = (root: string, name: string): string =>
-  path.join(sessionsRoot(root), ".status", `${name}.json`);
-
-function readCurrent(root: string): string | null {
-  const file = currentFile(root);
-  if (!fs.existsSync(file)) return null;
-  return fs.readFileSync(file, "utf8").trim() || null;
-}
-
-function setCurrent(root: string, name: string): void {
-  fs.mkdirSync(sessionsRoot(root), { recursive: true });
-  fs.writeFileSync(currentFile(root), `${name}\n`);
-}
-
-function clearCurrent(root: string): void {
-  const file = currentFile(root);
-  if (fs.existsSync(file)) fs.rmSync(file);
-}
-
-function readStatus(root: string, name: string): SessionStatus | null {
-  const file = statusFile(root, name);
-  if (!fs.existsSync(file)) return null;
-  try {
-    return JSON.parse(fs.readFileSync(file, "utf8")) as SessionStatus;
-  } catch {
-    return null;
-  }
-}
-
-function writeStatus(root: string, name: string, status: SessionStatus): void {
-  fs.mkdirSync(path.dirname(statusFile(root, name)), { recursive: true });
-  fs.writeFileSync(statusFile(root, name), JSON.stringify(status, null, 2) + "\n");
-}
-
-const sessionDir = (root: string, name: string): string => path.join(sessionsRoot(root), name);
+export { findAiRoot } from "../core/session-store";
 
 /** name 省略時は現在のセッションを使う。どちらも無ければエラー */
 function resolveSession(root: string, name: string | undefined, action: string): string {
