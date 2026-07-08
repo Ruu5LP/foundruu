@@ -64,41 +64,43 @@ function runDeep(cwd: string, options: DoctorOptions): void {
   }
   log.info("");
   log.info(pc.bold("トレーサビリティ（要件・設計とコードの紐づけ）"));
-  const t = report.trace;
-  if (t.checkedFiles === 0) {
+  const trace = report.trace;
+  if (trace.checkedFiles === 0) {
     log.info(pc.dim("  - 突き合わせ対象の変更ファイルがありません"));
-  } else if (t.designPath === undefined) {
+  } else if (trace.designPath === undefined) {
     log.info(pc.dim("  - 設計ドキュメントが無いため、変更ファイルとの突き合わせは未実施です"));
-  } else if (t.undocumented.length > 0) {
-    log.info(pc.yellow(`  ⚠ 設計(${t.designPath})に記載のない変更ファイル:`));
-    for (const f of t.undocumented) log.info(pc.yellow(`      - ${f}`));
+  } else if (trace.undocumented.length > 0) {
+    log.info(pc.yellow(`  ⚠ 設計(${trace.designPath})に記載のない変更ファイル:`));
+    for (const file of trace.undocumented) log.info(pc.yellow(`      - ${file}`));
     log.info(pc.dim("      → 設計の「変更対象」を更新するか、意図的なら理由を追記してください"));
   } else {
     log.info(
-      pc.green(`  ✔ 変更ファイル ${t.checkedFiles} 件はすべて設計(${t.designPath})に記載があります`)
+      pc.green(
+        `  ✔ 変更ファイル ${trace.checkedFiles} 件はすべて設計(${trace.designPath})に記載があります`
+      )
     );
   }
-  if (t.acceptanceIds.length === 0) {
+  if (trace.acceptanceIds.length === 0) {
     log.info(
       pc.dim(
         "  - 受け入れ条件 ID (AC-n) が要件に見つかりません。完了条件に AC-1: 形式で書くとトレースできます"
       )
     );
   } else {
-    if (t.untestedIds.length > 0) {
+    if (trace.untestedIds.length > 0) {
       log.info(
-        pc.yellow(`  ⚠ テスト観点から参照されていない受け入れ条件: ${t.untestedIds.join(", ")}`)
+        pc.yellow(`  ⚠ テスト観点から参照されていない受け入れ条件: ${trace.untestedIds.join(", ")}`)
       );
     }
-    if (t.unplannedIds.length > 0) {
+    if (trace.unplannedIds.length > 0) {
       log.info(
-        pc.yellow(`  ⚠ タスクから参照されていない受け入れ条件: ${t.unplannedIds.join(", ")}`)
+        pc.yellow(`  ⚠ タスクから参照されていない受け入れ条件: ${trace.unplannedIds.join(", ")}`)
       );
     }
-    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0) {
+    if (trace.untestedIds.length === 0 && trace.unplannedIds.length === 0) {
       log.info(
         pc.green(
-          `  ✔ 受け入れ条件 ${t.acceptanceIds.length} 件はすべてタスク・テスト観点から参照されています`
+          `  ✔ 受け入れ条件 ${trace.acceptanceIds.length} 件はすべてタスク・テスト観点から参照されています`
         )
       );
     }
@@ -114,6 +116,7 @@ function runDeep(cwd: string, options: DoctorOptions): void {
   }
 }
 
+/** doctor コマンド本体。--deep はスコア診断、--fix は自動修復後に通常診断へ続く */
 export function runDoctorCommand(cwd: string, options: DoctorOptions): void {
   if (options.deep) {
     runDeep(cwd, options);

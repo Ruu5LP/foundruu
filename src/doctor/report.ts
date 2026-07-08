@@ -48,25 +48,27 @@ export function renderMarkdown(report: DeepReport): string {
     lines.push("");
   }
   lines.push("## トレーサビリティ", "");
-  const t = report.trace;
-  if (t.checkedFiles === 0) {
+  const trace = report.trace;
+  if (trace.checkedFiles === 0) {
     lines.push("- 突き合わせ対象の変更ファイルなし");
-  } else if (t.designPath === undefined) {
+  } else if (trace.designPath === undefined) {
     lines.push("- 設計ドキュメントが無いため変更ファイルとの突き合わせは未実施");
-  } else if (t.undocumented.length > 0) {
+  } else if (trace.undocumented.length > 0) {
     lines.push(
-      `- ⚠ 設計(\`${t.designPath}\`)に記載のない変更ファイル: ${t.undocumented.join(", ")}`
+      `- ⚠ 設計(\`${trace.designPath}\`)に記載のない変更ファイル: ${trace.undocumented.join(", ")}`
     );
   } else {
-    lines.push(`- ✔ 変更ファイル ${t.checkedFiles} 件はすべて設計(\`${t.designPath}\`)に記載あり`);
+    lines.push(
+      `- ✔ 変更ファイル ${trace.checkedFiles} 件はすべて設計(\`${trace.designPath}\`)に記載あり`
+    );
   }
-  if (t.acceptanceIds.length > 0) {
-    if (t.untestedIds.length > 0)
-      lines.push(`- ⚠ テスト観点から未参照の受け入れ条件: ${t.untestedIds.join(", ")}`);
-    if (t.unplannedIds.length > 0)
-      lines.push(`- ⚠ タスクから未参照の受け入れ条件: ${t.unplannedIds.join(", ")}`);
-    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0)
-      lines.push(`- ✔ 受け入れ条件 ${t.acceptanceIds.length} 件はすべて参照済み`);
+  if (trace.acceptanceIds.length > 0) {
+    if (trace.untestedIds.length > 0)
+      lines.push(`- ⚠ テスト観点から未参照の受け入れ条件: ${trace.untestedIds.join(", ")}`);
+    if (trace.unplannedIds.length > 0)
+      lines.push(`- ⚠ タスクから未参照の受け入れ条件: ${trace.unplannedIds.join(", ")}`);
+    if (trace.untestedIds.length === 0 && trace.unplannedIds.length === 0)
+      lines.push(`- ✔ 受け入れ条件 ${trace.acceptanceIds.length} 件はすべて参照済み`);
   } else {
     lines.push("- 受け入れ条件 ID (AC-n) は未使用");
   }
@@ -123,24 +125,28 @@ function renderHtml(report: DeepReport): string {
 }
 
 function traceItems(report: DeepReport): string[] {
-  const t = report.trace;
+  const trace = report.trace;
   const items: string[] = [];
-  if (t.checkedFiles === 0) {
+  if (trace.checkedFiles === 0) {
     items.push("突き合わせ対象の変更ファイルなし");
-  } else if (t.designPath === undefined) {
+  } else if (trace.designPath === undefined) {
     items.push("設計ドキュメントが無いため変更ファイルとの突き合わせは未実施");
-  } else if (t.undocumented.length > 0) {
-    items.push(`⚠ 設計(${t.designPath})に記載のない変更ファイル: ${t.undocumented.join(", ")}`);
+  } else if (trace.undocumented.length > 0) {
+    items.push(
+      `⚠ 設計(${trace.designPath})に記載のない変更ファイル: ${trace.undocumented.join(", ")}`
+    );
   } else {
-    items.push(`✔ 変更ファイル ${t.checkedFiles} 件はすべて設計(${t.designPath})に記載あり`);
+    items.push(
+      `✔ 変更ファイル ${trace.checkedFiles} 件はすべて設計(${trace.designPath})に記載あり`
+    );
   }
-  if (t.acceptanceIds.length > 0) {
-    if (t.untestedIds.length > 0)
-      items.push(`⚠ テスト観点から未参照の受け入れ条件: ${t.untestedIds.join(", ")}`);
-    if (t.unplannedIds.length > 0)
-      items.push(`⚠ タスクから未参照の受け入れ条件: ${t.unplannedIds.join(", ")}`);
-    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0)
-      items.push(`✔ 受け入れ条件 ${t.acceptanceIds.length} 件はすべて参照済み`);
+  if (trace.acceptanceIds.length > 0) {
+    if (trace.untestedIds.length > 0)
+      items.push(`⚠ テスト観点から未参照の受け入れ条件: ${trace.untestedIds.join(", ")}`);
+    if (trace.unplannedIds.length > 0)
+      items.push(`⚠ タスクから未参照の受け入れ条件: ${trace.unplannedIds.join(", ")}`);
+    if (trace.untestedIds.length === 0 && trace.unplannedIds.length === 0)
+      items.push(`✔ 受け入れ条件 ${trace.acceptanceIds.length} 件はすべて参照済み`);
   } else {
     items.push("受け入れ条件 ID (AC-n) は未使用");
   }

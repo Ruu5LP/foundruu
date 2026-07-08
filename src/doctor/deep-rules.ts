@@ -14,6 +14,7 @@ export interface DeepRule {
   improvement: string;
 }
 
+/** 採点カテゴリの表示名 */
 export const CATEGORY_LABELS: Record<DocCategory, string> = {
   requirements: "要件品質",
   design: "設計品質",

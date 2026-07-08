@@ -40,6 +40,7 @@ export function latestReport(dir: string): { file: string; name: string } | null
   return { file: path.join(dir, name), name };
 }
 
+/** cloud push コマンド本体。最新の deep レポートを Cloud リポジトリへ送信する */
 export async function runCloudPush(cwd: string, options: CloudOptions): Promise<void> {
   const dir = path.resolve(cwd, options.dir ?? "reports");
   const report = latestReport(dir);

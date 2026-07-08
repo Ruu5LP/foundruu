@@ -43,15 +43,17 @@ export interface LoadedPlugin {
 const PLUGIN_PREFIX = "foundruu-plugin-";
 
 function discoverNodeModules(cwd: string): string[] {
-  const nm = path.join(cwd, "node_modules");
-  if (!fs.existsSync(nm)) return [];
+  const nodeModulesDir = path.join(cwd, "node_modules");
+  if (!fs.existsSync(nodeModulesDir)) return [];
   const found: string[] = [];
-  for (const entry of fs.readdirSync(nm, { withFileTypes: true })) {
+  for (const entry of fs.readdirSync(nodeModulesDir, { withFileTypes: true })) {
     if (entry.name.startsWith(PLUGIN_PREFIX)) {
-      found.push(path.join(nm, entry.name));
+      found.push(path.join(nodeModulesDir, entry.name));
     } else if (entry.name.startsWith("@") && entry.isDirectory()) {
-      for (const scoped of fs.readdirSync(path.join(nm, entry.name))) {
-        if (scoped.startsWith(PLUGIN_PREFIX)) found.push(path.join(nm, entry.name, scoped));
+      for (const scoped of fs.readdirSync(path.join(nodeModulesDir, entry.name))) {
+        if (scoped.startsWith(PLUGIN_PREFIX)) {
+          found.push(path.join(nodeModulesDir, entry.name, scoped));
+        }
       }
     }
   }

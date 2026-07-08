@@ -2,6 +2,7 @@ import pc from "picocolors";
 
 let out: (msg: string) => void = (msg) => console.log(msg);
 
+/** CLI 共通のログ出力(色付き)。ユーザー向けメッセージはすべてここを通す */
 export const log = {
   info: (msg: string): void => out(msg),
   step: (msg: string): void => out(pc.cyan(`▸ ${msg}`)),

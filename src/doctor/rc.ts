@@ -32,6 +32,7 @@ export interface FoundruuRc {
   };
 }
 
+/** .foundruurc を読み込む。存在しなければ空設定を返す */
 export function readRc(cwd: string): FoundruuRc {
   const file = path.join(cwd, RC_FILE);
   if (!fs.existsSync(file)) return {};

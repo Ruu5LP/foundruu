@@ -80,6 +80,7 @@ export const templates: TemplateDefinition[] = [
   },
 ];
 
+/** --template 未指定時に使うテンプレート ID */
 export const DEFAULT_TEMPLATE = "typescript";
 
 /** --features で選択可能な feature 一覧(assets/templates/features/ と対応) */
@@ -97,6 +98,7 @@ export const availableFeatures = [
   "lark",
 ] as const;
 
+/** テンプレート ID から定義を引く。未知の ID は undefined */
 export function findTemplate(id: string): TemplateDefinition | undefined {
   return templates.find((t) => t.id === id);
 }

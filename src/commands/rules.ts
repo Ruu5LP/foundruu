@@ -26,6 +26,7 @@ function rulesFile(cwd: string, file?: string): string {
   return path.join(root, ".ai", "rules", name.endsWith(".md") ? name : `${name}.md`);
 }
 
+/** レビュー指摘等を規約として .ai/rules へ追記する。初回はヘッダー付きで作成 */
 export function addRule(cwd: string, text: string, options: { file?: string } = {}): void {
   if (!text.trim()) {
     throw new Error("追加する規約の内容を指定してください。");
@@ -41,6 +42,7 @@ export function addRule(cwd: string, text: string, options: { file?: string } = 
   log.info(`  ${entry.trim()}`);
 }
 
+/** .ai/rules 配下のルールファイルと規約件数を表示する */
 export function listRules(cwd: string): void {
   const root = requireAiRoot(cwd);
   const dir = path.join(root, ".ai", "rules");

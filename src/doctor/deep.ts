@@ -46,11 +46,11 @@ function collectDiff(
   let deletions = 0;
   const changedFiles: string[] = [];
   for (const line of numstat.split("\n")) {
-    const m = line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/);
-    if (!m) continue;
-    changedFiles.push(m[3]);
-    if (m[1] !== "-") insertions += Number(m[1]);
-    if (m[2] !== "-") deletions += Number(m[2]);
+    const matched = line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/);
+    if (!matched) continue;
+    changedFiles.push(matched[3]);
+    if (matched[1] !== "-") insertions += Number(matched[1]);
+    if (matched[2] !== "-") deletions += Number(matched[2]);
   }
   const files = changedFiles.length;
   // 未追跡の新規ファイルは diff に出ないが、設計との突き合わせでは変更として扱う

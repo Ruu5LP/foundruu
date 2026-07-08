@@ -10,9 +10,16 @@ import path from "path";
 /** 見出し・空行を除いた最初の本文行を返す(テンプレート未記入なら undefined) */
 function firstBodyLine(content: string): string | undefined {
   for (const line of content.split("\n")) {
-    const t = line.trim();
-    if (!t || t.startsWith("#") || t.startsWith("<!--") || t.startsWith(">")) continue;
-    return t.replace(/^[-*]\s+/, "");
+    const trimmed = line.trim();
+    if (
+      !trimmed ||
+      trimmed.startsWith("#") ||
+      trimmed.startsWith("<!--") ||
+      trimmed.startsWith(">")
+    ) {
+      continue;
+    }
+    return trimmed.replace(/^[-*]\s+/, "");
   }
   return undefined;
 }

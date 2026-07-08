@@ -147,6 +147,7 @@ async function promptMissing(cwd: string, options: InitOptions): Promise<InitOpt
   return { ...options, template, name, description, features };
 }
 
+/** init コマンド本体。テンプレート + Workflow + Doctor 設定を一括導入する */
 export async function runInit(cwd: string, rawOptions: InitOptions): Promise<void> {
   const options = await promptMissing(cwd, rawOptions);
   const templateId = options.template ?? DEFAULT_TEMPLATE;

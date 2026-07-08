@@ -117,6 +117,7 @@ export function renderOnboarding(cwd: string): string {
   return lines.join("\n");
 }
 
+/** onboard コマンド本体。AI にパイプで渡せる装飾なし Markdown を標準出力へ流す */
 export function runOnboard(cwd: string): void {
   // AI にパイプで渡せるよう、装飾なしの Markdown を標準出力へ流す
   console.log(renderOnboarding(cwd));

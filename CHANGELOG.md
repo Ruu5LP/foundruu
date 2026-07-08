@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 可読性改善: 複数行スコープで使われていた1〜2文字変数（`t` / `m` / `nm` / `esc` 等）を意味のある名前へ改名し、エクスポートされる全関数・定数に日本語1行 JSDoc を整備。命名・JSDoc の基準を `.ai/rules/coding-style.md` と CLAUDE.md に規約化（`foundruu rules add` を使用）
+
 ### Added
 
 - **`foundruu onboard`**: 新しいメンバー（人・AI）向けに、リポジトリのルール（CLAUDE.md / .ai/rules）・ワークフロー・セッションの状態・doctor 結果・次のステップをまとめたオンボーディングサマリを Markdown で出力するコマンドを追加。MCP にも `onboard` ツールとして公開し、AI エージェントが作業開始前にプロジェクトの文脈を一括取得できるようにした
