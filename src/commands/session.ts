@@ -33,6 +33,7 @@ function resolveSession(root: string, name: string | undefined, action: string):
   return target;
 }
 
+/** テンプレートから .ai/sessions/<name>/ を作成し、現在のセッションに設定する */
 export function startSession(cwd: string, name: string): void {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name)) {
     throw new Error(`セッション名が不正です(英数字で始まり / や空白を含まないこと): ${name}`);
@@ -149,6 +150,7 @@ export function sessionNames(cwd: string): string[] {
     .sort();
 }
 
+/** セッションの一覧を状態(進行中/完了)付きで表示する */
 export function listSessions(cwd: string): void {
   const sessions = sessionNames(cwd);
 

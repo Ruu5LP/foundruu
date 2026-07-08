@@ -85,6 +85,7 @@ export function unpromotedDesigns(cwd: string): string[] {
   return results;
 }
 
+/** 保守運用カテゴリのチェック一覧(checks.ts から結合される) */
 export const maintenanceChecks: DoctorCheck[] = [
   {
     id: "docs-freshness",

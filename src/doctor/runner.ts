@@ -4,6 +4,7 @@ import { checks as defaultChecks } from "./checks";
 import { applyRc, readRc } from "./rc";
 import { CheckResult, DoctorCheck, DoctorContext, DoctorReport, FixReport } from "./types";
 
+/** チェック関数へ渡す実行コンテキスト(存在確認ヘルパー付き)を作る */
 export function createContext(cwd: string): DoctorContext {
   const exists = (rel: string): boolean => fs.existsSync(path.join(cwd, rel));
   return {
@@ -13,18 +14,19 @@ export function createContext(cwd: string): DoctorContext {
   };
 }
 
+/** 全チェックを実行して集計する。.foundruurc の無効化・severity 上書きを適用済み */
 export function runDoctor(cwd: string, checkList: DoctorCheck[] = defaultChecks): DoctorReport {
   const ctx = createContext(cwd);
   const effective = applyRc(checkList, readRc(cwd));
-  const results: CheckResult[] = effective.map((c) => {
-    const ok = c.check(ctx);
-    const status = ok ? "pass" : c.severity === "error" ? "fail" : "warn";
+  const results: CheckResult[] = effective.map((check) => {
+    const passed = check.check(ctx);
+    const status = passed ? "pass" : check.severity === "error" ? "fail" : "warn";
     return {
-      id: c.id,
-      label: c.label,
-      category: c.category,
+      id: check.id,
+      label: check.label,
+      category: check.category,
       status,
-      ...(ok ? {} : { hint: c.hint }),
+      ...(passed ? {} : { hint: check.hint }),
     };
   });
 
@@ -43,12 +45,12 @@ export function runDoctorFix(cwd: string, checkList: DoctorCheck[] = defaultChec
   const effective = applyRc(checkList, readRc(cwd));
   const fixed: FixReport["fixed"] = [];
   const unfixable: FixReport["unfixable"] = [];
-  for (const c of effective) {
-    if (c.check(ctx)) continue; // pass しているものは触らない
-    if (c.fix) {
-      fixed.push({ label: c.label, message: c.fix(ctx) });
+  for (const check of effective) {
+    if (check.check(ctx)) continue; // pass しているものは触らない
+    if (check.fix) {
+      fixed.push({ label: check.label, message: check.fix(ctx) });
     } else {
-      unfixable.push({ label: c.label, hint: c.hint });
+      unfixable.push({ label: check.label, hint: check.hint });
     }
   }
   return { fixed, unfixable };

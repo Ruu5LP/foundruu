@@ -6637,15 +6637,15 @@ function createContext(cwd) {
 function runDoctor(cwd, checkList = checks) {
   const ctx = createContext(cwd);
   const effective = applyRc(checkList, readRc(cwd));
-  const results = effective.map((c) => {
-    const ok = c.check(ctx);
-    const status = ok ? "pass" : c.severity === "error" ? "fail" : "warn";
+  const results = effective.map((check2) => {
+    const passed2 = check2.check(ctx);
+    const status = passed2 ? "pass" : check2.severity === "error" ? "fail" : "warn";
     return {
-      id: c.id,
-      label: c.label,
-      category: c.category,
+      id: check2.id,
+      label: check2.label,
+      category: check2.category,
       status,
-      ...ok ? {} : { hint: c.hint }
+      ...passed2 ? {} : { hint: check2.hint }
     };
   });
   const passed = results.filter((r) => r.status === "pass").length;
@@ -6658,12 +6658,12 @@ function runDoctorFix(cwd, checkList = checks) {
   const effective = applyRc(checkList, readRc(cwd));
   const fixed = [];
   const unfixable = [];
-  for (const c of effective) {
-    if (c.check(ctx)) continue;
-    if (c.fix) {
-      fixed.push({ label: c.label, message: c.fix(ctx) });
+  for (const check2 of effective) {
+    if (check2.check(ctx)) continue;
+    if (check2.fix) {
+      fixed.push({ label: check2.label, message: check2.fix(ctx) });
     } else {
-      unfixable.push({ label: c.label, hint: c.hint });
+      unfixable.push({ label: check2.label, hint: check2.hint });
     }
   }
   return { fixed, unfixable };
@@ -6945,8 +6945,8 @@ var init_deep_docs = __esm({
 
 // src/doctor/deep-trace.ts
 function globToRegExp(glob) {
-  const esc3 = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*\//g, "<DIRS>").replace(/\*\*/g, "<ANY>").replace(/\*/g, "[^/]*").replace(/<DIRS>/g, "(?:.*/)?").replace(/<ANY>/g, ".*");
-  return new RegExp(`^${esc3}$`);
+  const esc2 = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*\//g, "<DIRS>").replace(/\*\*/g, "<ANY>").replace(/\*/g, "[^/]*").replace(/<DIRS>/g, "(?:.*/)?").replace(/<ANY>/g, ".*");
+  return new RegExp(`^${esc2}$`);
 }
 function mentionedInDesign(file2, designContent) {
   if (designContent.includes(file2)) return true;
@@ -6962,10 +6962,10 @@ function collectTrace(cwd, changedFiles, docs, excludes = []) {
   let design;
   const session2 = latestSessionDir(cwd);
   if (session2 !== void 0) {
-    const p = import_path12.default.join(session2, "design.md");
-    if (import_fs12.default.existsSync(import_path12.default.join(cwd, p))) {
-      const content = import_fs12.default.readFileSync(import_path12.default.join(cwd, p), "utf8");
-      if (content.trim().length > 0) design = { path: p, content };
+    const sessionDesignPath = import_path12.default.join(session2, "design.md");
+    if (import_fs12.default.existsSync(import_path12.default.join(cwd, sessionDesignPath))) {
+      const content = import_fs12.default.readFileSync(import_path12.default.join(cwd, sessionDesignPath), "utf8");
+      if (content.trim().length > 0) design = { path: sessionDesignPath, content };
     }
   }
   design ??= docs.get("design");
@@ -7005,11 +7005,11 @@ function collectDiff(cwd, since) {
   let deletions = 0;
   const changedFiles = [];
   for (const line of numstat.split("\n")) {
-    const m = line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/);
-    if (!m) continue;
-    changedFiles.push(m[3]);
-    if (m[1] !== "-") insertions += Number(m[1]);
-    if (m[2] !== "-") deletions += Number(m[2]);
+    const matched = line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/);
+    if (!matched) continue;
+    changedFiles.push(matched[3]);
+    if (matched[1] !== "-") insertions += Number(matched[1]);
+    if (matched[2] !== "-") deletions += Number(matched[2]);
   }
   const files = changedFiles.length;
   const untracked = git2(cwd, ["ls-files", "--others", "--exclude-standard"]).split("\n").filter((f) => f.length > 0);
@@ -7195,9 +7195,11 @@ var init_update = __esm({
 // src/core/changelog.ts
 function firstBodyLine(content) {
   for (const line of content.split("\n")) {
-    const t = line.trim();
-    if (!t || t.startsWith("#") || t.startsWith("<!--") || t.startsWith(">")) continue;
-    return t.replace(/^[-*]\s+/, "");
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("<!--") || trimmed.startsWith(">")) {
+      continue;
+    }
+    return trimmed.replace(/^[-*]\s+/, "");
   }
   return void 0;
 }
@@ -39937,8 +39939,10 @@ function renderDashboard(history) {
   const overallText = hasMeasured ? `\u7DCF\u5408\u30B9\u30B3\u30A2: ${latest.report.overall}\u70B9` : "\u7DCF\u5408\u30B9\u30B3\u30A2: \u672A\u8A08\u6E2C";
   const actionable = [...latest.report.scores].filter((s) => s.failed.length > 0).sort((a, b) => a.score - b.score);
   const actionsHtml = actionable.length ? actionable.map(
-    (s) => `<h3>${esc2(s.label)} <span class="meta">(${s.score}\u70B9${s.docPath ? ` / ${esc2(s.docPath)}` : ""})</span></h3>
-<ul>` + s.failed.map((f) => `<li><strong>${esc2(f.label)}</strong> \u2014 ${esc2(f.improvement)}</li>`).join("") + `</ul>`
+    (s) => `<h3>${escapeHtml2(s.label)} <span class="meta">(${s.score}\u70B9${s.docPath ? ` / ${escapeHtml2(s.docPath)}` : ""})</span></h3>
+<ul>` + s.failed.map(
+      (f) => `<li><strong>${escapeHtml2(f.label)}</strong> \u2014 ${escapeHtml2(f.improvement)}</li>`
+    ).join("") + `</ul>`
   ).join("\n") : `<p>\u6539\u5584\u30A2\u30AF\u30B7\u30E7\u30F3\u306F\u3042\u308A\u307E\u305B\u3093 \u{1F389}</p>`;
   return `<!doctype html>
 <html lang="ja">
@@ -39987,14 +39991,14 @@ function runDashboard(cwd, options) {
   import_fs23.default.writeFileSync(out2, renderDashboard(history));
   log.success(`\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9\u3092\u751F\u6210\u3057\u307E\u3057\u305F: ${out2}(\u30EC\u30DD\u30FC\u30C8${history.length}\u4EF6)`);
 }
-var import_fs23, import_path24, esc2;
+var import_fs23, import_path24, escapeHtml2;
 var init_dashboard = __esm({
   "src/commands/dashboard.ts"() {
     "use strict";
     import_fs23 = __toESM(require("fs"));
     import_path24 = __toESM(require("path"));
     init_logger();
-    esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    escapeHtml2 = (raw) => raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 });
 
@@ -43668,25 +43672,27 @@ function renderMarkdown(report) {
     lines.push("");
   }
   lines.push("## \u30C8\u30EC\u30FC\u30B5\u30D3\u30EA\u30C6\u30A3", "");
-  const t = report.trace;
-  if (t.checkedFiles === 0) {
+  const trace = report.trace;
+  if (trace.checkedFiles === 0) {
     lines.push("- \u7A81\u304D\u5408\u308F\u305B\u5BFE\u8C61\u306E\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u306A\u3057");
-  } else if (t.designPath === void 0) {
+  } else if (trace.designPath === void 0) {
     lines.push("- \u8A2D\u8A08\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u7121\u3044\u305F\u3081\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u3068\u306E\u7A81\u304D\u5408\u308F\u305B\u306F\u672A\u5B9F\u65BD");
-  } else if (t.undocumented.length > 0) {
+  } else if (trace.undocumented.length > 0) {
     lines.push(
-      `- \u26A0 \u8A2D\u8A08(\`${t.designPath}\`)\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB: ${t.undocumented.join(", ")}`
+      `- \u26A0 \u8A2D\u8A08(\`${trace.designPath}\`)\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB: ${trace.undocumented.join(", ")}`
     );
   } else {
-    lines.push(`- \u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${t.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(\`${t.designPath}\`)\u306B\u8A18\u8F09\u3042\u308A`);
+    lines.push(
+      `- \u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${trace.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(\`${trace.designPath}\`)\u306B\u8A18\u8F09\u3042\u308A`
+    );
   }
-  if (t.acceptanceIds.length > 0) {
-    if (t.untestedIds.length > 0)
-      lines.push(`- \u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.untestedIds.join(", ")}`);
-    if (t.unplannedIds.length > 0)
-      lines.push(`- \u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.unplannedIds.join(", ")}`);
-    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0)
-      lines.push(`- \u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${t.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u53C2\u7167\u6E08\u307F`);
+  if (trace.acceptanceIds.length > 0) {
+    if (trace.untestedIds.length > 0)
+      lines.push(`- \u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${trace.untestedIds.join(", ")}`);
+    if (trace.unplannedIds.length > 0)
+      lines.push(`- \u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${trace.unplannedIds.join(", ")}`);
+    if (trace.untestedIds.length === 0 && trace.unplannedIds.length === 0)
+      lines.push(`- \u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${trace.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u53C2\u7167\u6E08\u307F`);
   } else {
     lines.push("- \u53D7\u3051\u5165\u308C\u6761\u4EF6 ID (AC-n) \u306F\u672A\u4F7F\u7528");
   }
@@ -43734,24 +43740,28 @@ function renderHtml(report) {
 `;
 }
 function traceItems(report) {
-  const t = report.trace;
+  const trace = report.trace;
   const items = [];
-  if (t.checkedFiles === 0) {
+  if (trace.checkedFiles === 0) {
     items.push("\u7A81\u304D\u5408\u308F\u305B\u5BFE\u8C61\u306E\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u306A\u3057");
-  } else if (t.designPath === void 0) {
+  } else if (trace.designPath === void 0) {
     items.push("\u8A2D\u8A08\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u7121\u3044\u305F\u3081\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u3068\u306E\u7A81\u304D\u5408\u308F\u305B\u306F\u672A\u5B9F\u65BD");
-  } else if (t.undocumented.length > 0) {
-    items.push(`\u26A0 \u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB: ${t.undocumented.join(", ")}`);
+  } else if (trace.undocumented.length > 0) {
+    items.push(
+      `\u26A0 \u8A2D\u8A08(${trace.designPath})\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB: ${trace.undocumented.join(", ")}`
+    );
   } else {
-    items.push(`\u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${t.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u3042\u308A`);
+    items.push(
+      `\u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${trace.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(${trace.designPath})\u306B\u8A18\u8F09\u3042\u308A`
+    );
   }
-  if (t.acceptanceIds.length > 0) {
-    if (t.untestedIds.length > 0)
-      items.push(`\u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.untestedIds.join(", ")}`);
-    if (t.unplannedIds.length > 0)
-      items.push(`\u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.unplannedIds.join(", ")}`);
-    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0)
-      items.push(`\u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${t.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u53C2\u7167\u6E08\u307F`);
+  if (trace.acceptanceIds.length > 0) {
+    if (trace.untestedIds.length > 0)
+      items.push(`\u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${trace.untestedIds.join(", ")}`);
+    if (trace.unplannedIds.length > 0)
+      items.push(`\u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u672A\u53C2\u7167\u306E\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${trace.unplannedIds.join(", ")}`);
+    if (trace.untestedIds.length === 0 && trace.unplannedIds.length === 0)
+      items.push(`\u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${trace.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u53C2\u7167\u6E08\u307F`);
   } else {
     items.push("\u53D7\u3051\u5165\u308C\u6761\u4EF6 ID (AC-n) \u306F\u672A\u4F7F\u7528");
   }
@@ -43809,41 +43819,43 @@ function runDeep(cwd, options) {
   }
   log.info("");
   log.info(import_picocolors2.default.bold("\u30C8\u30EC\u30FC\u30B5\u30D3\u30EA\u30C6\u30A3\uFF08\u8981\u4EF6\u30FB\u8A2D\u8A08\u3068\u30B3\u30FC\u30C9\u306E\u7D10\u3065\u3051\uFF09"));
-  const t = report.trace;
-  if (t.checkedFiles === 0) {
+  const trace = report.trace;
+  if (trace.checkedFiles === 0) {
     log.info(import_picocolors2.default.dim("  - \u7A81\u304D\u5408\u308F\u305B\u5BFE\u8C61\u306E\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u304C\u3042\u308A\u307E\u305B\u3093"));
-  } else if (t.designPath === void 0) {
+  } else if (trace.designPath === void 0) {
     log.info(import_picocolors2.default.dim("  - \u8A2D\u8A08\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u7121\u3044\u305F\u3081\u3001\u5909\u66F4\u30D5\u30A1\u30A4\u30EB\u3068\u306E\u7A81\u304D\u5408\u308F\u305B\u306F\u672A\u5B9F\u65BD\u3067\u3059"));
-  } else if (t.undocumented.length > 0) {
-    log.info(import_picocolors2.default.yellow(`  \u26A0 \u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB:`));
-    for (const f of t.undocumented) log.info(import_picocolors2.default.yellow(`      - ${f}`));
+  } else if (trace.undocumented.length > 0) {
+    log.info(import_picocolors2.default.yellow(`  \u26A0 \u8A2D\u8A08(${trace.designPath})\u306B\u8A18\u8F09\u306E\u306A\u3044\u5909\u66F4\u30D5\u30A1\u30A4\u30EB:`));
+    for (const file2 of trace.undocumented) log.info(import_picocolors2.default.yellow(`      - ${file2}`));
     log.info(import_picocolors2.default.dim("      \u2192 \u8A2D\u8A08\u306E\u300C\u5909\u66F4\u5BFE\u8C61\u300D\u3092\u66F4\u65B0\u3059\u308B\u304B\u3001\u610F\u56F3\u7684\u306A\u3089\u7406\u7531\u3092\u8FFD\u8A18\u3057\u3066\u304F\u3060\u3055\u3044"));
   } else {
     log.info(
-      import_picocolors2.default.green(`  \u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${t.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(${t.designPath})\u306B\u8A18\u8F09\u304C\u3042\u308A\u307E\u3059`)
+      import_picocolors2.default.green(
+        `  \u2714 \u5909\u66F4\u30D5\u30A1\u30A4\u30EB ${trace.checkedFiles} \u4EF6\u306F\u3059\u3079\u3066\u8A2D\u8A08(${trace.designPath})\u306B\u8A18\u8F09\u304C\u3042\u308A\u307E\u3059`
+      )
     );
   }
-  if (t.acceptanceIds.length === 0) {
+  if (trace.acceptanceIds.length === 0) {
     log.info(
       import_picocolors2.default.dim(
         "  - \u53D7\u3051\u5165\u308C\u6761\u4EF6 ID (AC-n) \u304C\u8981\u4EF6\u306B\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002\u5B8C\u4E86\u6761\u4EF6\u306B AC-1: \u5F62\u5F0F\u3067\u66F8\u304F\u3068\u30C8\u30EC\u30FC\u30B9\u3067\u304D\u307E\u3059"
       )
     );
   } else {
-    if (t.untestedIds.length > 0) {
+    if (trace.untestedIds.length > 0) {
       log.info(
-        import_picocolors2.default.yellow(`  \u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u306A\u3044\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.untestedIds.join(", ")}`)
+        import_picocolors2.default.yellow(`  \u26A0 \u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u306A\u3044\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${trace.untestedIds.join(", ")}`)
       );
     }
-    if (t.unplannedIds.length > 0) {
+    if (trace.unplannedIds.length > 0) {
       log.info(
-        import_picocolors2.default.yellow(`  \u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u306A\u3044\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${t.unplannedIds.join(", ")}`)
+        import_picocolors2.default.yellow(`  \u26A0 \u30BF\u30B9\u30AF\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u306A\u3044\u53D7\u3051\u5165\u308C\u6761\u4EF6: ${trace.unplannedIds.join(", ")}`)
       );
     }
-    if (t.untestedIds.length === 0 && t.unplannedIds.length === 0) {
+    if (trace.untestedIds.length === 0 && trace.unplannedIds.length === 0) {
       log.info(
         import_picocolors2.default.green(
-          `  \u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${t.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u30BF\u30B9\u30AF\u30FB\u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u307E\u3059`
+          `  \u2714 \u53D7\u3051\u5165\u308C\u6761\u4EF6 ${trace.acceptanceIds.length} \u4EF6\u306F\u3059\u3079\u3066\u30BF\u30B9\u30AF\u30FB\u30C6\u30B9\u30C8\u89B3\u70B9\u304B\u3089\u53C2\u7167\u3055\u308C\u3066\u3044\u307E\u3059`
         )
       );
     }
@@ -43914,15 +43926,17 @@ init_config();
 init_logger();
 var PLUGIN_PREFIX = "foundruu-plugin-";
 function discoverNodeModules(cwd) {
-  const nm = import_path18.default.join(cwd, "node_modules");
-  if (!import_fs18.default.existsSync(nm)) return [];
+  const nodeModulesDir = import_path18.default.join(cwd, "node_modules");
+  if (!import_fs18.default.existsSync(nodeModulesDir)) return [];
   const found = [];
-  for (const entry of import_fs18.default.readdirSync(nm, { withFileTypes: true })) {
+  for (const entry of import_fs18.default.readdirSync(nodeModulesDir, { withFileTypes: true })) {
     if (entry.name.startsWith(PLUGIN_PREFIX)) {
-      found.push(import_path18.default.join(nm, entry.name));
+      found.push(import_path18.default.join(nodeModulesDir, entry.name));
     } else if (entry.name.startsWith("@") && entry.isDirectory()) {
-      for (const scoped of import_fs18.default.readdirSync(import_path18.default.join(nm, entry.name))) {
-        if (scoped.startsWith(PLUGIN_PREFIX)) found.push(import_path18.default.join(nm, entry.name, scoped));
+      for (const scoped of import_fs18.default.readdirSync(import_path18.default.join(nodeModulesDir, entry.name))) {
+        if (scoped.startsWith(PLUGIN_PREFIX)) {
+          found.push(import_path18.default.join(nodeModulesDir, entry.name, scoped));
+        }
       }
     }
   }

@@ -31,6 +31,7 @@ const text = (value: unknown) => ({
   ],
 });
 
+/** MCP サーバー(stdio)を起動し、doctor / session / onboard 等をツールとして公開する */
 export async function runMcpServer(cwd: string): Promise<void> {
   // stdout は JSON-RPC 専用。CLI ログはすべて stderr へ
   log.useStderr();

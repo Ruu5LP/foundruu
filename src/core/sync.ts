@@ -15,10 +15,12 @@ export interface SyncResult {
   hashes: FileHashes;
 }
 
+/** ファイル内容の sha256 ハッシュを返す(ユーザー編集の検出に使う) */
 export function hashFile(filePath: string): string {
   return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
 
+/** ディレクトリ配下の全ファイルを base からの相対パスで列挙する */
 export function listFiles(dir: string, base = dir): string[] {
   const out: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -27,6 +29,15 @@ export function listFiles(dir: string, base = dir): string[] {
     else out.push(path.relative(base, full));
   }
   return out;
+}
+
+/** relPath が only 指定(完全一致 or ディレクトリ前置一致)に含まれるか */
+export function matchesOnly(relPath: string, only: string[]): boolean {
+  const normalized = relPath.split(path.sep).join("/");
+  return only.some((o) => {
+    const pattern = o.replace(/\/+$/, "");
+    return normalized === pattern || normalized.startsWith(pattern + "/");
+  });
 }
 
 /**
@@ -39,15 +50,6 @@ export function listFiles(dir: string, base = dir): string[] {
  * - 導入先 != recorded(ユーザーが編集済み) → user-modified(force 時のみ上書き)
  * - recorded が無い(旧バージョン導入等)   → user-modified 扱いで保護
  */
-/** relPath が only 指定(完全一致 or ディレクトリ前置一致)に含まれるか */
-export function matchesOnly(relPath: string, only: string[]): boolean {
-  const normalized = relPath.split(path.sep).join("/");
-  return only.some((o) => {
-    const pattern = o.replace(/\/+$/, "");
-    return normalized === pattern || normalized.startsWith(pattern + "/");
-  });
-}
-
 export function syncTree(
   srcDir: string,
   destDir: string,

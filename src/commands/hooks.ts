@@ -57,6 +57,7 @@ function isOurs(file: string): boolean {
   return fs.existsSync(file) && fs.readFileSync(file, "utf8").includes(HOOK_MARKER);
 }
 
+/** pre-commit フックを導入する。FoundRuu 以外の既存フックは force 指定時のみ上書き */
 export function installHooks(cwd: string, options: { force?: boolean } = {}): void {
   const file = hookFile(cwd);
   if (fs.existsSync(file) && !isOurs(file) && !options.force) {
@@ -72,6 +73,7 @@ export function installHooks(cwd: string, options: { force?: boolean } = {}): vo
   log.info("  fail があるとコミットは中止されます（緊急時: git commit --no-verify）");
 }
 
+/** FoundRuu が生成した pre-commit フックを削除する(他者のフックには触れない) */
 export function uninstallHooks(cwd: string): void {
   const file = hookFile(cwd);
   if (!fs.existsSync(file)) {
@@ -85,6 +87,7 @@ export function uninstallHooks(cwd: string): void {
   log.success("pre-commit フックを削除しました");
 }
 
+/** pre-commit フックの導入状態を表示する */
 export function hooksStatus(cwd: string): void {
   const file = hookFile(cwd);
   if (isOurs(file)) {

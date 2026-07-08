@@ -14,10 +14,12 @@ export function assetsRoot(): string {
   return root;
 }
 
+/** 同梱テンプレート(assets/templates)のルートを返す */
 export function templatesRoot(): string {
   return path.join(assetsRoot(), "templates");
 }
 
+/** 同梱ワークフローアセット(assets/workflow)のルートを返す */
 export function workflowRoot(): string {
   return path.join(assetsRoot(), "workflow");
 }

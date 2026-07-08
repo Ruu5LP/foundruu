@@ -63,10 +63,10 @@ export function collectTrace(
   let design: CategoryDoc | undefined;
   const session = latestSessionDir(cwd);
   if (session !== undefined) {
-    const p = path.join(session, "design.md");
-    if (fs.existsSync(path.join(cwd, p))) {
-      const content = fs.readFileSync(path.join(cwd, p), "utf8");
-      if (content.trim().length > 0) design = { path: p, content };
+    const sessionDesignPath = path.join(session, "design.md");
+    if (fs.existsSync(path.join(cwd, sessionDesignPath))) {
+      const content = fs.readFileSync(path.join(cwd, sessionDesignPath), "utf8");
+      if (content.trim().length > 0) design = { path: sessionDesignPath, content };
     }
   }
   design ??= docs.get("design");

@@ -49,9 +49,11 @@ function trendSvg(history: HistoryEntry[]): string {
 </svg>`;
 }
 
-const esc = (s: string): string =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+/** HTML への埋め込み用エスケープ */
+const escapeHtml = (raw: string): string =>
+  raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+/** レポート履歴からスコア推移ダッシュボード(HTML)を組み立てる */
 export function renderDashboard(history: HistoryEntry[]): string {
   const latest = history[history.length - 1];
   const color = (s: number) => (s >= 80 ? "#22a06b" : s >= 50 ? "#b38600" : "#c9372c");
@@ -91,10 +93,13 @@ export function renderDashboard(history: HistoryEntry[]): string {
     ? actionable
         .map(
           (s) =>
-            `<h3>${esc(s.label)} <span class="meta">(${s.score}点${s.docPath ? ` / ${esc(s.docPath)}` : ""})</span></h3>\n` +
+            `<h3>${escapeHtml(s.label)} <span class="meta">(${s.score}点${s.docPath ? ` / ${escapeHtml(s.docPath)}` : ""})</span></h3>\n` +
             `<ul>` +
             s.failed
-              .map((f) => `<li><strong>${esc(f.label)}</strong> — ${esc(f.improvement)}</li>`)
+              .map(
+                (f) =>
+                  `<li><strong>${escapeHtml(f.label)}</strong> — ${escapeHtml(f.improvement)}</li>`
+              )
               .join("") +
             `</ul>`
         )
@@ -135,6 +140,7 @@ ${actionsHtml}
 `;
 }
 
+/** dashboard コマンド本体。履歴を読み込み HTML を書き出す */
 export function runDashboard(cwd: string, options: { dir?: string; out?: string }): void {
   const dir = path.resolve(cwd, options.dir ?? "reports");
   const history = loadHistory(dir);
