@@ -260,7 +260,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Ruu5LP/foundruu@v0.12.0 # リリースタグに固定（移動タグ v0 でも可）
+      - uses: Ruu5LP/foundruu@v0.13.0 # リリースタグに固定（移動タグ v0 でも可）
         with:
           fail-on: error # error / warning / never
           deep: "true" # --deep のスコア診断も実行
@@ -273,7 +273,7 @@ jobs:
 
 結果はジョブサマリに表形式で出力されます。依存ごとバンドル済みのため、実行時に
 npm install や TypeScript ビルドは走りません(`node` で即実行)。`@main` ではなく
-リリースタグ(`@v0.12.0` など)への固定を推奨します。
+リリースタグ(`@v0.13.0` など)への固定を推奨します。
 
 ## VSCode Extension
 
