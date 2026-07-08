@@ -29,7 +29,7 @@ npm install && npm run build && npm link
 | `foundruu hooks install` / `uninstall` / `status`                     | pre-commit フックを管理（コミット前に doctor を実行し、fail ならコミットを中止）                   |
 | `foundruu rules add "<text>"` / `rules list`                          | レビュー指摘を `.ai/rules/` へ規約化して再発防止（`--file` で追記先指定可）                        |
 | `foundruu update [--force] [--diff] [--only <paths...>]`              | Workflow / Prompt / Rules を最新へ更新（パス指定・差分確認可）                                     |
-| `foundruu session start <name>` / `list` / `show` / `end` / `current` | AI開発セッションの作成 / 一覧 / 状態表示 / 完了 / 現在のセッション                                 |
+| `foundruu session start <name>` / `list` / `show` / `end` / `current` | AI開発セッションの作成 / 一覧 / 状態表示 / 完了（CHANGELOG 下書きを自動生成） / 現在のセッション   |
 | `foundruu templates`                                                  | 利用可能なテンプレート一覧                                                                         |
 | `foundruu plugins`                                                    | 読み込まれているプラグイン一覧                                                                     |
 | `foundruu mcp`                                                        | MCP サーバーを起動（AIエージェント連携）                                                           |

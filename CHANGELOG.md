@@ -8,6 +8,8 @@
 
 ### Added
 
+- **`session end` 時に CHANGELOG 下書きを自動生成**: セッションの summary.md / requirements.md から要約と受け入れ条件（AC-n）を抽出し、`.ai/sessions/<name>/changelog-draft.md` を生成する。リリース時はこれを整えて CHANGELOG.md の Unreleased へ転記するだけでよい。既存の下書きは上書きしない
+
 - **`foundruu rules add "<text>"` / `rules list`**: レビュー指摘を `.ai/rules/review-feedback.md` へ 1 コマンドで規約化するコマンドを追加（`--file` で追記先変更可）。「同じ指摘を繰り返さない」ためのレビュー → 規約の還元フローを支える
 - **`doctor --deep --markdown`**: deep の結果を Markdown で標準出力するオプションを追加（PR コメント用）
 - **GitHub Action に `pr-comment` 入力を追加**: `pr-comment: "true"` で deep スコアとトレーサビリティ結果を PR コメントとして投稿する（既存コメントを更新し積み上げない）。`github-token` 入力でトークン差し替え可。本リポジトリの self-doctor ジョブでもドッグフーディング
