@@ -159,9 +159,9 @@ describe("runCloudPush(送信をモック)", () => {
       vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => "boom" })
     );
 
-    await expect(plugin.runCloudPush(cwd, { repo: "o/r", project: "p" }, silentLog)).rejects.toThrow(
-      /HTTP 500/
-    );
+    await expect(
+      plugin.runCloudPush(cwd, { repo: "o/r", project: "p" }, silentLog)
+    ).rejects.toThrow(/HTTP 500/);
   });
 });
 
@@ -190,7 +190,9 @@ const historyEntry = (timestamp: string, entryReport: DeepReportLike) => ({
 
 describe("renderDashboard", () => {
   it("最新の総合スコアとカテゴリ行を含む", () => {
-    const html = plugin.renderDashboard([historyEntry("2026-07-01", report(82, 82, "docs/req.md"))]);
+    const html = plugin.renderDashboard([
+      historyEntry("2026-07-01", report(82, 82, "docs/req.md")),
+    ]);
     expect(html).toContain("総合スコア: 82点");
     expect(html).toContain("要件品質");
     expect(html).toContain("docs/req.md");
