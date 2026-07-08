@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import pc from "picocolors";
+import { renderChangelogDraft } from "../core/changelog";
 import { log } from "../core/logger";
 import {
   clearCurrent,
@@ -84,6 +85,13 @@ export function endSession(cwd: string, name?: string): void {
   writeStatus(root, target, status);
   if (readCurrent(root) === target) clearCurrent(root);
   log.success(`セッションを終了しました: ${target}`);
+  // リリース時にセッションを掘り返さなくて済むよう、CHANGELOG の材料をこの時点で下書きする
+  const draftFile = path.join(sessionDir(root, target), "changelog-draft.md");
+  if (!fs.existsSync(draftFile)) {
+    fs.writeFileSync(draftFile, renderChangelogDraft(target, sessionDir(root, target)));
+    log.info(`CHANGELOG 下書きを生成しました: .ai/sessions/${target}/changelog-draft.md`);
+    log.info(pc.dim("  分類と文面を整えて CHANGELOG.md の Unreleased へ転記してください。"));
+  }
   // セッションの設計は使い捨てだが、恒久的な設計判断は昇格しないと保守時に参照できなくなる
   const designFile = path.join(root, ".ai", "sessions", target, "design.md");
   if (fs.existsSync(designFile) && fs.readFileSync(designFile, "utf8").trim().length > 0) {

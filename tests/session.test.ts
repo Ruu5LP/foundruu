@@ -114,6 +114,23 @@ describe("session ライフサイクル", () => {
     expect(() => endSession(tmp, "nope")).toThrow(/見つかりません/);
   });
 
+  it("end 時に CHANGELOG 下書き(changelog-draft.md)を生成する", () => {
+    startSession(tmp, "s1");
+    write(".ai/sessions/s1/requirements.md", "# 要件\n\nログイン機能を追加する。\n");
+    endSession(tmp);
+    const draft = fs.readFileSync(path.join(tmp, ".ai/sessions/s1/changelog-draft.md"), "utf8");
+    expect(draft).toContain("**s1**: ログイン機能を追加する。");
+  });
+
+  it("changelog-draft.md が既にあれば上書きしない", () => {
+    startSession(tmp, "s1");
+    write(".ai/sessions/s1/changelog-draft.md", "手書きの下書き\n");
+    endSession(tmp);
+    expect(fs.readFileSync(path.join(tmp, ".ai/sessions/s1/changelog-draft.md"), "utf8")).toBe(
+      "手書きの下書き\n"
+    );
+  });
+
   it("current は現在のセッション名を表示する", () => {
     const spy = vi.spyOn(log, "info").mockImplementation(() => {});
     startSession(tmp, "s1");
