@@ -1,5 +1,12 @@
 # FoundRuu Cloud 設計
 
+> **注記(2026-07):** `cloud push` / `dashboard` コマンドは本体から公式プラグイン
+> [foundruu-plugin-cloud](../plugins/foundruu-plugin-cloud/) に切り出されました
+> （本体を「番人」に絞る方針。[roadmap.md](roadmap.md) 参照）。
+> 利用には `npm i -D foundruu-plugin-cloud` が必要です。
+> **foundruu-cloud リポジトリの Actions**（`npx foundruu dashboard` を実行している箇所）も
+> プラグインを併せてインストールするよう更新が必要です。
+
 ## 目的
 
 複数プロジェクトの `doctor --deep` レポートを一箇所に集約し、

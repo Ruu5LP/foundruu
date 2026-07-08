@@ -20,23 +20,43 @@ npm install && npm run build && npm link
 
 ## コマンド
 
-| コマンド                                                              | 説明                                                                                               |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `foundruu init [--template <id>] [--features <list>]`                 | テンプレート + Workflow + Rules + Doctor設定を一括導入                                             |
-| `foundruu workflow install`                                           | Workflow / Prompt / Rules（`.ai/`）のみを既存リポジトリへ導入                                      |
-| `foundruu doctor [--json] [--fix]`                                    | リポジトリがAI開発可能な状態か診断（`--fix` で README/LICENSE/.gitignore/.env.example を自動生成） |
-| `foundruu doctor --deep [--since <ref>] [--report <dir>]`             | AI開発プロセス品質をスコア診断（md/html/json レポート出力可）                                      |
-| `foundruu hooks install` / `uninstall` / `status`                     | pre-commit フックを管理（コミット前に doctor を実行し、fail ならコミットを中止）                   |
-| `foundruu rules add "<text>"` / `rules list`                          | レビュー指摘を `.ai/rules/` へ規約化して再発防止（`--file` で追記先指定可）                        |
-| `foundruu update [--force] [--diff] [--only <paths...>]`              | Workflow / Prompt / Rules を最新へ更新（パス指定・差分確認可）                                     |
-| `foundruu session start <name>` / `list` / `show` / `end` / `current` | AI開発セッションの作成 / 一覧 / 状態表示 / 完了（CHANGELOG 下書きを自動生成） / 現在のセッション   |
-| `foundruu onboard`                                                    | ルール・ワークフロー・セッション・健全性をまとめたオンボーディングサマリ(Markdown)を出力           |
-| `foundruu templates`                                                  | 利用可能なテンプレート一覧                                                                         |
-| `foundruu plugins`                                                    | 読み込まれているプラグイン一覧                                                                     |
-| `foundruu mcp`                                                        | MCP サーバーを起動（AIエージェント連携）                                                           |
-| `foundruu dashboard [--dir <dir>] [--out <file>]`                     | deep レポート履歴からスコア推移ダッシュボード(HTML)を生成（既定: `reports/index.html`）            |
-| `foundruu cloud push`                                                 | 最新の deep レポートを [foundruu-cloud](https://github.com/Ruu5LP/foundruu-cloud) へ送信           |
-| `foundruu --help` / `--version`                                       | ヘルプ / バージョン                                                                                |
+FoundRuu の機能は「導入 → 番人（守る） → 記録・引き継ぎ」の3軸で構成されています。
+
+### 導入 — AI開発環境をつくる
+
+| コマンド                                                 | 説明                                                           |
+| -------------------------------------------------------- | -------------------------------------------------------------- |
+| `foundruu init [--template <id>] [--features <list>]`    | テンプレート + Workflow + Rules + Doctor設定を一括導入         |
+| `foundruu workflow install`                              | Workflow / Prompt / Rules（`.ai/`）のみを既存リポジトリへ導入  |
+| `foundruu update [--force] [--diff] [--only <paths...>]` | Workflow / Prompt / Rules を最新へ更新（パス指定・差分確認可） |
+| `foundruu templates`                                     | 利用可能なテンプレート一覧                                     |
+
+### 番人 — 品質とドキュメントを守る
+
+| コマンド                                                  | 説明                                                                                               |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `foundruu doctor [--json] [--fix]`                        | リポジトリがAI開発可能な状態か診断（`--fix` で README/LICENSE/.gitignore/.env.example を自動生成） |
+| `foundruu doctor --deep [--since <ref>] [--report <dir>]` | AI開発プロセス品質をスコア診断（md/html/json レポート出力可）                                      |
+| `foundruu hooks install` / `uninstall` / `status`         | pre-commit フックを管理（コミット前に doctor を実行し、fail ならコミットを中止）                   |
+| `foundruu rules add "<text>"` / `rules list`              | レビュー指摘を `.ai/rules/` へ規約化して再発防止（`--file` で追記先指定可）                        |
+
+### 記録・引き継ぎ — 開発の文脈を残す
+
+| コマンド                                                              | 説明                                                                                             |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `foundruu session start <name>` / `list` / `show` / `end` / `current` | AI開発セッションの作成 / 一覧 / 状態表示 / 完了（CHANGELOG 下書きを自動生成） / 現在のセッション |
+| `foundruu onboard`                                                    | ルール・ワークフロー・セッション・健全性をまとめたオンボーディングサマリ(Markdown)を出力         |
+
+### その他
+
+| コマンド                        | 説明                                     |
+| ------------------------------- | ---------------------------------------- |
+| `foundruu mcp`                  | MCP サーバーを起動（AIエージェント連携） |
+| `foundruu plugins`              | 読み込まれているプラグイン一覧           |
+| `foundruu --help` / `--version` | ヘルプ / バージョン                      |
+
+計測・集約系の `foundruu dashboard` / `foundruu cloud push` は公式プラグイン
+[foundruu-plugin-cloud](plugins/foundruu-plugin-cloud/) が提供します（[ダッシュボードと Cloud](#ダッシュボードと-cloudfoundruu-plugin-cloud) 参照）。
 
 ## テンプレート
 
@@ -205,8 +225,13 @@ module.exports = {
 
 - [foundruu-plugin-security](plugins/foundruu-plugin-security/) — SECURITY.md / .env の gitignore / 依存更新自動化のチェックを追加（`npm i -D foundruu-plugin-security`）。自作プラグインの参考実装でもあります
 - [foundruu-plugin-node](plugins/foundruu-plugin-node/) — Node バージョン固定 / ロックファイル / node_modules の gitignore のチェックを追加（`npm i -D foundruu-plugin-node`）
+- [foundruu-plugin-cloud](plugins/foundruu-plugin-cloud/) — スコア推移ダッシュボードと Cloud レポート集約のコマンドを追加（`npm i -D foundruu-plugin-cloud`）
 
-## ダッシュボード
+## ダッシュボードと Cloud（foundruu-plugin-cloud）
+
+計測・集約系の機能は本体から分離され、公式プラグイン
+[foundruu-plugin-cloud](plugins/foundruu-plugin-cloud/) が提供します
+（本体は「番人（守る）」に絞る方針のため）。
 
 `doctor --deep --report reports` で溜めたレポートから、スコア推移を可視化できます:
 
@@ -214,8 +239,6 @@ module.exports = {
 foundruu dashboard                        # reports/index.html を生成
 foundruu dashboard --dir out --out d.html # 入力ディレクトリ・出力先を指定
 ```
-
-## Cloud（レポート集約）
 
 複数プロジェクトのレポートを [foundruu-cloud](https://github.com/Ruu5LP/foundruu-cloud) に集約し、
 [公開ダッシュボード](https://ruu5lp.github.io/foundruu-cloud/)で俯瞰できます:

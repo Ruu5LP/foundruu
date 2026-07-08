@@ -1258,13 +1258,13 @@ var require_ast = __commonJS({
         helperExpression: function helperExpression(node) {
           return node.type === "SubExpression" || (node.type === "MustacheStatement" || node.type === "BlockStatement") && !!(node.params && node.params.length || node.hash);
         },
-        scopedId: function scopedId(path26) {
-          return /^\.|this\b/.test(path26.original);
+        scopedId: function scopedId(path24) {
+          return /^\.|this\b/.test(path24.original);
         },
         // an ID is simple if it only has one part, and that part is not
         // `..` or `this`.
-        simpleId: function simpleId(path26) {
-          return path26.parts.length === 1 && !AST.helpers.scopedId(path26) && !path26.depth;
+        simpleId: function simpleId(path24) {
+          return path24.parts.length === 1 && !AST.helpers.scopedId(path24) && !path24.depth;
         }
       }
     };
@@ -2334,12 +2334,12 @@ var require_helpers2 = __commonJS({
         loc
       };
     }
-    function prepareMustache(path26, params, hash2, open, strip, locInfo) {
+    function prepareMustache(path24, params, hash2, open, strip, locInfo) {
       var escapeFlag = open.charAt(3) || open.charAt(2), escaped = escapeFlag !== "{" && escapeFlag !== "&";
       var decorator = /\*/.test(open);
       return {
         type: decorator ? "Decorator" : "MustacheStatement",
-        path: path26,
+        path: path24,
         params,
         hash: hash2,
         escaped,
@@ -2657,9 +2657,9 @@ var require_compiler = __commonJS({
       },
       DecoratorBlock: function DecoratorBlock(decorator) {
         var program3 = decorator.program && this.compileProgram(decorator.program);
-        var params = this.setupFullMustacheParams(decorator, program3, void 0), path26 = decorator.path;
+        var params = this.setupFullMustacheParams(decorator, program3, void 0), path24 = decorator.path;
         this.useDecorators = true;
-        this.opcode("registerDecorator", params.length, path26.original);
+        this.opcode("registerDecorator", params.length, path24.original);
       },
       PartialStatement: function PartialStatement(partial2) {
         this.usePartial = true;
@@ -2723,46 +2723,46 @@ var require_compiler = __commonJS({
         }
       },
       ambiguousSexpr: function ambiguousSexpr(sexpr, program3, inverse) {
-        var path26 = sexpr.path, name = path26.parts[0], isBlock = program3 != null || inverse != null;
-        this.opcode("getContext", path26.depth);
+        var path24 = sexpr.path, name = path24.parts[0], isBlock = program3 != null || inverse != null;
+        this.opcode("getContext", path24.depth);
         this.opcode("pushProgram", program3);
         this.opcode("pushProgram", inverse);
-        path26.strict = true;
-        this.accept(path26);
+        path24.strict = true;
+        this.accept(path24);
         this.opcode("invokeAmbiguous", name, isBlock);
       },
       simpleSexpr: function simpleSexpr(sexpr) {
-        var path26 = sexpr.path;
-        path26.strict = true;
-        this.accept(path26);
+        var path24 = sexpr.path;
+        path24.strict = true;
+        this.accept(path24);
         this.opcode("resolvePossibleLambda");
       },
       helperSexpr: function helperSexpr(sexpr, program3, inverse) {
-        var params = this.setupFullMustacheParams(sexpr, program3, inverse), path26 = sexpr.path, name = path26.parts[0];
+        var params = this.setupFullMustacheParams(sexpr, program3, inverse), path24 = sexpr.path, name = path24.parts[0];
         if (this.options.knownHelpers[name]) {
           this.opcode("invokeKnownHelper", params.length, name);
         } else if (this.options.knownHelpersOnly) {
           throw new _exception2["default"]("You specified knownHelpersOnly, but used the unknown helper " + name, sexpr);
         } else {
-          path26.strict = true;
-          path26.falsy = true;
-          this.accept(path26);
-          this.opcode("invokeHelper", params.length, path26.original, _ast2["default"].helpers.simpleId(path26));
+          path24.strict = true;
+          path24.falsy = true;
+          this.accept(path24);
+          this.opcode("invokeHelper", params.length, path24.original, _ast2["default"].helpers.simpleId(path24));
         }
       },
-      PathExpression: function PathExpression(path26) {
-        this.addDepth(path26.depth);
-        this.opcode("getContext", path26.depth);
-        var name = path26.parts[0], scoped = _ast2["default"].helpers.scopedId(path26), blockParamId = !path26.depth && !scoped && this.blockParamIndex(name);
+      PathExpression: function PathExpression(path24) {
+        this.addDepth(path24.depth);
+        this.opcode("getContext", path24.depth);
+        var name = path24.parts[0], scoped = _ast2["default"].helpers.scopedId(path24), blockParamId = !path24.depth && !scoped && this.blockParamIndex(name);
         if (blockParamId) {
-          this.opcode("lookupBlockParam", blockParamId, path26.parts);
+          this.opcode("lookupBlockParam", blockParamId, path24.parts);
         } else if (!name) {
           this.opcode("pushContext");
-        } else if (path26.data) {
+        } else if (path24.data) {
           this.options.data = true;
-          this.opcode("lookupData", path26.depth, path26.parts, path26.strict);
+          this.opcode("lookupData", path24.depth, path24.parts, path24.strict);
         } else {
-          this.opcode("lookupOnContext", path26.parts, path26.falsy, path26.strict, scoped);
+          this.opcode("lookupOnContext", path24.parts, path24.falsy, path24.strict, scoped);
         }
       },
       StringLiteral: function StringLiteral(string4) {
@@ -3112,16 +3112,16 @@ var require_util = __commonJS({
     }
     exports2.urlGenerate = urlGenerate;
     function normalize(aPath) {
-      var path26 = aPath;
+      var path24 = aPath;
       var url2 = urlParse(aPath);
       if (url2) {
         if (!url2.path) {
           return aPath;
         }
-        path26 = url2.path;
+        path24 = url2.path;
       }
-      var isAbsolute = exports2.isAbsolute(path26);
-      var parts = path26.split(/\/+/);
+      var isAbsolute = exports2.isAbsolute(path24);
+      var parts = path24.split(/\/+/);
       for (var part, up = 0, i = parts.length - 1; i >= 0; i--) {
         part = parts[i];
         if (part === ".") {
@@ -3138,15 +3138,15 @@ var require_util = __commonJS({
           }
         }
       }
-      path26 = parts.join("/");
-      if (path26 === "") {
-        path26 = isAbsolute ? "/" : ".";
+      path24 = parts.join("/");
+      if (path24 === "") {
+        path24 = isAbsolute ? "/" : ".";
       }
       if (url2) {
-        url2.path = path26;
+        url2.path = path24;
         return urlGenerate(url2);
       }
-      return path26;
+      return path24;
     }
     exports2.normalize = normalize;
     function join(aRoot, aPath) {
@@ -5929,8 +5929,8 @@ var require_printer = __commonJS({
       return this.accept(sexpr.path) + " " + params + hash2;
     };
     PrintVisitor.prototype.PathExpression = function(id) {
-      var path26 = id.parts.join("/");
-      return (id.data ? "@" : "") + "PATH:" + path26;
+      var path24 = id.parts.join("/");
+      return (id.data ? "@" : "") + "PATH:" + path24;
     };
     PrintVisitor.prototype.StringLiteral = function(string4) {
       return '"' + string4.value + '"';
@@ -5969,8 +5969,8 @@ var require_lib = __commonJS({
     handlebars.print = printer.print;
     module2.exports = handlebars;
     function extension(module3, filename) {
-      var fs25 = require("fs");
-      var templateString = fs25.readFileSync(filename, "utf8");
+      var fs23 = require("fs");
+      var templateString = fs23.readFileSync(filename, "utf8");
       module3.exports = handlebars.compile(templateString);
     }
     if (typeof require !== "undefined" && require.extensions) {
@@ -8105,8 +8105,8 @@ var init_parseUtil = __esm({
     init_errors();
     init_en();
     makeIssue = (params) => {
-      const { data, path: path26, errorMaps, issueData } = params;
-      const fullPath = [...path26, ...issueData.path || []];
+      const { data, path: path24, errorMaps, issueData } = params;
+      const fullPath = [...path24, ...issueData.path || []];
       const fullIssue = {
         ...issueData,
         path: fullPath
@@ -8386,11 +8386,11 @@ var init_types = __esm({
     init_parseUtil();
     init_util();
     ParseInputLazyPath = class {
-      constructor(parent, value, path26, key) {
+      constructor(parent, value, path24, key) {
         this._cachedPath = [];
         this.parent = parent;
         this.data = value;
-        this._path = path26;
+        this._path = path24;
         this._key = key;
       }
       get path() {
@@ -11889,10 +11889,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path26) {
-  if (!path26)
+function getElementAtPath(obj, path24) {
+  if (!path24)
     return obj;
-  return path26.reduce((acc, key) => acc?.[key], obj);
+  return path24.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -12220,11 +12220,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path26, issues) {
+function prefixIssues(path24, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path26);
+    iss.path.unshift(path24);
     return iss;
   });
 }
@@ -12441,16 +12441,16 @@ function flattenError(error51, mapper = (issue2) => issue2.message) {
 }
 function formatError(error51, mapper = (issue2) => issue2.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error52, path26 = []) => {
+  const processError = (error52, path24 = []) => {
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path26, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path24, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path26, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path24, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path26, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path24, ...issue2.path]);
       } else {
-        const fullpath = [...path26, ...issue2.path];
+        const fullpath = [...path24, ...issue2.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue2));
         } else {
@@ -12477,17 +12477,17 @@ function formatError(error51, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error51, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error52, path26 = []) => {
+  const processError = (error52, path24 = []) => {
     var _a3, _b;
     for (const issue2 of error52.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
-        issue2.errors.map((issues) => processError({ issues }, [...path26, ...issue2.path]));
+        issue2.errors.map((issues) => processError({ issues }, [...path24, ...issue2.path]));
       } else if (issue2.code === "invalid_key") {
-        processError({ issues: issue2.issues }, [...path26, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path24, ...issue2.path]);
       } else if (issue2.code === "invalid_element") {
-        processError({ issues: issue2.issues }, [...path26, ...issue2.path]);
+        processError({ issues: issue2.issues }, [...path24, ...issue2.path]);
       } else {
-        const fullpath = [...path26, ...issue2.path];
+        const fullpath = [...path24, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -12519,8 +12519,8 @@ function treeifyError(error51, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path26 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path26) {
+  const path24 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path24) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -26200,13 +26200,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path26 = ref.slice(1).split("/").filter(Boolean);
-  if (path26.length === 0) {
+  const path24 = ref.slice(1).split("/").filter(Boolean);
+  if (path24.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path26[0] === defsKey) {
-    const key = path26[1];
+  if (path24[0] === defsKey) {
+    const key = path24[1];
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -34305,8 +34305,8 @@ var require_utils2 = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path26) {
-      let input = path26;
+    function removeDotSegments(path24) {
+      let input = path24;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -34558,8 +34558,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path26, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path26 && path26 !== "/" ? path26 : void 0;
+        const [path24, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path24 && path24 !== "/" ? path24 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -37952,12 +37952,12 @@ var require_dist = __commonJS({
         throw new Error(`Unknown format "${name}"`);
       return f;
     };
-    function addFormats(ajv, list, fs25, exportName) {
+    function addFormats(ajv, list, fs23, exportName) {
       var _a3;
       var _b;
       (_a3 = (_b = ajv.opts.code).formats) !== null && _a3 !== void 0 ? _a3 : _b.formats = (0, codegen_1._)`require("ajv-formats/dist/formats").${exportName}`;
       for (const f of list)
-        ajv.addFormat(f, fs25[f]);
+        ajv.addFormat(f, fs23[f]);
     }
     module2.exports = exports2 = formatsPlugin;
     Object.defineProperty(exports2, "__esModule", { value: true });
@@ -39807,198 +39807,6 @@ var init_mcp2 = __esm({
         }
       ]
     });
-  }
-});
-
-// src/commands/cloud.ts
-var cloud_exports = {};
-__export(cloud_exports, {
-  latestReport: () => latestReport,
-  runCloudPush: () => runCloudPush
-});
-function resolveToken() {
-  for (const env of ["GH_TOKEN", "GITHUB_TOKEN"]) {
-    if (process.env[env]) return process.env[env];
-  }
-  try {
-    return (0, import_child_process6.execFileSync)("gh", ["auth", "token"], { stdio: "pipe" }).toString().trim();
-  } catch {
-    throw new Error(
-      "GitHub \u30C8\u30FC\u30AF\u30F3\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002gh auth login \u3092\u5B9F\u884C\u3059\u308B\u304B GH_TOKEN \u3092\u8A2D\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002"
-    );
-  }
-}
-function latestReport(dir) {
-  if (!import_fs22.default.existsSync(dir)) return null;
-  const files = import_fs22.default.readdirSync(dir).filter((f) => /^foundruu-deep-report-.*\.json$/.test(f)).sort();
-  if (files.length === 0) return null;
-  const name = files[files.length - 1];
-  return { file: import_path23.default.join(dir, name), name };
-}
-async function runCloudPush(cwd, options) {
-  const dir = import_path23.default.resolve(cwd, options.dir ?? "reports");
-  const report = latestReport(dir);
-  if (!report) {
-    throw new Error(
-      `${options.dir ?? "reports"} \u306B deep \u30EC\u30DD\u30FC\u30C8\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u307E\u305A foundruu doctor --deep --report ${options.dir ?? "reports"} \u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002`
-    );
-  }
-  const config2 = readConfig(cwd);
-  const repo = options.repo ?? config2?.cloud?.repo ?? DEFAULT_CLOUD_REPO;
-  const project = (options.project ?? config2?.projectName ?? import_path23.default.basename(cwd)).replace(
-    /[^\w.-]/g,
-    "-"
-  );
-  const destPath = `reports/${project}/${report.name}`;
-  const token = resolveToken();
-  const content = import_fs22.default.readFileSync(report.file);
-  const res = await fetch(`https://api.github.com/repos/${repo}/contents/${destPath}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      message: `Add deep report: ${project} (${report.name})`,
-      content: content.toString("base64")
-    })
-  });
-  if (res.status === 422) {
-    log.warn("\u540C\u540D\u306E\u30EC\u30DD\u30FC\u30C8\u304C\u65E2\u306B\u9001\u4FE1\u3055\u308C\u3066\u3044\u307E\u3059\u3002");
-    return;
-  }
-  if (!res.ok) {
-    const body = (await res.text()).slice(0, 300);
-    throw new Error(`\u9001\u4FE1\u306B\u5931\u6557\u3057\u307E\u3057\u305F(HTTP ${res.status}): ${body}`);
-  }
-  log.success(`\u30EC\u30DD\u30FC\u30C8\u3092\u9001\u4FE1\u3057\u307E\u3057\u305F: ${repo}/${destPath}`);
-  log.info(
-    `\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9: https://${repo.split("/")[0].toLowerCase()}.github.io/${repo.split("/")[1]}/`
-  );
-}
-var import_child_process6, import_fs22, import_path23, DEFAULT_CLOUD_REPO;
-var init_cloud = __esm({
-  "src/commands/cloud.ts"() {
-    "use strict";
-    import_child_process6 = require("child_process");
-    import_fs22 = __toESM(require("fs"));
-    import_path23 = __toESM(require("path"));
-    init_config();
-    init_logger();
-    DEFAULT_CLOUD_REPO = "Ruu5LP/foundruu-cloud";
-  }
-});
-
-// src/commands/dashboard.ts
-var dashboard_exports = {};
-__export(dashboard_exports, {
-  loadHistory: () => loadHistory,
-  renderDashboard: () => renderDashboard,
-  runDashboard: () => runDashboard
-});
-function loadHistory(dir) {
-  if (!import_fs23.default.existsSync(dir)) return [];
-  return import_fs23.default.readdirSync(dir).filter((f) => /^foundruu-deep-report-.*\.json$/.test(f)).sort().map((f) => ({
-    timestamp: f.replace(/^foundruu-deep-report-/, "").replace(/\.json$/, ""),
-    report: JSON.parse(import_fs23.default.readFileSync(import_path24.default.join(dir, f), "utf8"))
-  }));
-}
-function trendSvg(history) {
-  const w = 760;
-  const h = 220;
-  const pad = 30;
-  const n = history.length;
-  const x = (i) => n === 1 ? w / 2 : pad + i * (w - pad * 2) / (n - 1);
-  const y = (score) => h - pad - score * (h - pad * 2) / 100;
-  const points = history.map((e, i) => `${x(i)},${y(e.report.overall)}`).join(" ");
-  const dots = history.map(
-    (e, i) => `<circle cx="${x(i)}" cy="${y(e.report.overall)}" r="4" fill="#4c6ef5"><title>${e.timestamp}: ${e.report.overall}\u70B9</title></circle>`
-  ).join("");
-  const gridLines = [0, 50, 80, 100].map(
-    (v) => `<line x1="${pad}" y1="${y(v)}" x2="${w - pad}" y2="${y(v)}" stroke="#e0e0e0"/><text x="4" y="${y(v) + 4}" font-size="10" fill="#888">${v}</text>`
-  ).join("");
-  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="\u7DCF\u5408\u30B9\u30B3\u30A2\u63A8\u79FB">
-  ${gridLines}
-  <polyline points="${points}" fill="none" stroke="#4c6ef5" stroke-width="2"/>
-  ${dots}
-</svg>`;
-}
-function renderDashboard(history) {
-  const latest = history[history.length - 1];
-  const color = (s) => s >= 80 ? "#22a06b" : s >= 50 ? "#b38600" : "#c9372c";
-  const categoryRows = latest.report.scores.map((s) => {
-    const prev = history.length > 1 ? history[history.length - 2].report.scores.find((p) => p.category === s.category) : void 0;
-    const delta = prev ? s.score - prev.score : 0;
-    const deltaLabel = prev ? delta > 0 ? ` (\u25B2${delta})` : delta < 0 ? ` (\u25BC${-delta})` : " (\xB10)" : "";
-    const scoreCell = s.docPath !== void 0 ? `<span style="color:${color(s.score)};font-weight:bold">${s.score}\u70B9${deltaLabel}</span>` : `<span class="meta">\u672A\u8A08\u6E2C</span>`;
-    return `<tr><td>${s.label}</td><td>${scoreCell}</td><td>${s.docPath ?? "\uFF08\u306A\u3057\uFF09"}</td></tr>`;
-  }).join("");
-  const hasMeasured = latest.report.scores.some((s) => s.docPath !== void 0);
-  const overallColor = hasMeasured ? color(latest.report.overall) : "#666";
-  const overallText = hasMeasured ? `\u7DCF\u5408\u30B9\u30B3\u30A2: ${latest.report.overall}\u70B9` : "\u7DCF\u5408\u30B9\u30B3\u30A2: \u672A\u8A08\u6E2C";
-  const actionable = [...latest.report.scores].filter((s) => s.failed.length > 0).sort((a, b) => a.score - b.score);
-  const actionsHtml = actionable.length ? actionable.map(
-    (s) => `<h3>${escapeHtml2(s.label)} <span class="meta">(${s.score}\u70B9${s.docPath ? ` / ${escapeHtml2(s.docPath)}` : ""})</span></h3>
-<ul>` + s.failed.map(
-      (f) => `<li><strong>${escapeHtml2(f.label)}</strong> \u2014 ${escapeHtml2(f.improvement)}</li>`
-    ).join("") + `</ul>`
-  ).join("\n") : `<p>\u6539\u5584\u30A2\u30AF\u30B7\u30E7\u30F3\u306F\u3042\u308A\u307E\u305B\u3093 \u{1F389}</p>`;
-  return `<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<title>FoundRuu Dashboard</title>
-<style>
-  body { font-family: -apple-system, "Hiragino Sans", sans-serif; margin: 2rem auto; max-width: 50rem; padding: 0 1rem; color: #1c1c1c; }
-  table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid #ddd; padding: .5rem .75rem; text-align: left; }
-  th { background: #f5f5f5; }
-  .overall { font-size: 2.5rem; font-weight: bold; color: ${overallColor}; }
-  .meta { color: #666; font-weight: normal; }
-  h3 { margin: 1.2rem 0 .3rem; }
-  ul { line-height: 1.7; margin-top: .2rem; }
-</style>
-</head>
-<body>
-<h1>FoundRuu Dashboard</h1>
-<p class="meta">\u30EC\u30DD\u30FC\u30C8 ${history.length}\u4EF6 / \u6700\u65B0: ${latest.timestamp}</p>
-<p class="overall">${overallText}</p>
-<h2>\u30B9\u30B3\u30A2\u63A8\u79FB</h2>
-${trendSvg(history)}
-<h2>\u6700\u65B0\u306E\u30AB\u30C6\u30B4\u30EA\u5225\u30B9\u30B3\u30A2</h2>
-<table>
-  <tr><th>\u30AB\u30C6\u30B4\u30EA</th><th>\u30B9\u30B3\u30A2\uFF08\u524D\u56DE\u6BD4\uFF09</th><th>\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8</th></tr>
-  ${categoryRows}
-</table>
-<h2>\u6539\u5584\u30A2\u30AF\u30B7\u30E7\u30F3\uFF08\u6700\u65B0\u30EC\u30DD\u30FC\u30C8\uFF09</h2>
-${actionsHtml}
-</body>
-</html>
-`;
-}
-function runDashboard(cwd, options) {
-  const dir = import_path24.default.resolve(cwd, options.dir ?? "reports");
-  const history = loadHistory(dir);
-  if (history.length === 0) {
-    log.warn(
-      `${import_path24.default.relative(cwd, dir) || "."} \u306B deep \u30EC\u30DD\u30FC\u30C8\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u307E\u305A foundruu doctor --deep --report ${options.dir ?? "reports"} \u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002`
-    );
-    process.exitCode = 1;
-    return;
-  }
-  const out2 = import_path24.default.resolve(cwd, options.out ?? import_path24.default.join(dir, "index.html"));
-  import_fs23.default.writeFileSync(out2, renderDashboard(history));
-  log.success(`\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9\u3092\u751F\u6210\u3057\u307E\u3057\u305F: ${out2}(\u30EC\u30DD\u30FC\u30C8${history.length}\u4EF6)`);
-}
-var import_fs23, import_path24, escapeHtml2;
-var init_dashboard = __esm({
-  "src/commands/dashboard.ts"() {
-    "use strict";
-    import_fs23 = __toESM(require("fs"));
-    import_path24 = __toESM(require("path"));
-    init_logger();
-    escapeHtml2 = (raw) => raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 });
 
@@ -43113,9 +42921,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
    * @param {string} [path]
    * @return {(string|null|Command)}
    */
-  executableDir(path26) {
-    if (path26 === void 0) return this._executableDir;
-    this._executableDir = path26;
+  executableDir(path24) {
+    if (path24 === void 0) return this._executableDir;
+    this._executableDir = path24;
     return this;
   }
   /**
@@ -44053,15 +43861,6 @@ session.command("end [name]").description("\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\
 });
 session.command("current").description("\u73FE\u5728\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3092\u8868\u793A\u3059\u308B").action(async () => {
   await wrap(() => currentSession(process.cwd()));
-});
-var cloud = program2.command("cloud").description("FoundRuu Cloud(\u30EC\u30DD\u30FC\u30C8\u96C6\u7D04)\u3068\u9023\u643A\u3059\u308B");
-cloud.command("push").description("\u6700\u65B0\u306E deep \u30EC\u30DD\u30FC\u30C8\u3092 Cloud \u30EA\u30DD\u30B8\u30C8\u30EA\u3078\u9001\u4FE1\u3059\u308B").option("--dir <dir>", "\u30EC\u30DD\u30FC\u30C8\u306E\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA", "reports").option("--repo <owner/repo>", "\u9001\u4FE1\u5148\u30EA\u30DD\u30B8\u30C8\u30EA(\u30C7\u30D5\u30A9\u30EB\u30C8: foundruu.json \u306E cloud.repo)").option("--project <name>", "\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u540D(\u30C7\u30D5\u30A9\u30EB\u30C8: foundruu.json \u306E projectName)").action(async (opts) => {
-  const { runCloudPush: runCloudPush2 } = await Promise.resolve().then(() => (init_cloud(), cloud_exports));
-  await wrap(() => runCloudPush2(process.cwd(), opts));
-});
-program2.command("dashboard").description("doctor --deep \u306E\u30EC\u30DD\u30FC\u30C8\u5C65\u6B74\u304B\u3089\u30B9\u30B3\u30A2\u63A8\u79FB\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9(HTML)\u3092\u751F\u6210\u3059\u308B").option("--dir <dir>", "\u30EC\u30DD\u30FC\u30C8\u306E\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA", "reports").option("--out <file>", "\u51FA\u529B\u5148HTML(\u30C7\u30D5\u30A9\u30EB\u30C8: <dir>/index.html)").action(async (opts) => {
-  const { runDashboard: runDashboard2 } = await Promise.resolve().then(() => (init_dashboard(), dashboard_exports));
-  await wrap(() => runDashboard2(process.cwd(), opts));
 });
 program2.command("templates").description("\u5229\u7528\u53EF\u80FD\u306A\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u3092\u4E00\u89A7\u8868\u793A\u3059\u308B").action(() => {
   for (const t of templates) {

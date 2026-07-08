@@ -1,5 +1,33 @@
 # FoundRuu ロードマップ
 
+## 製品方針（2026-07 更新）
+
+「計測するツール」から「守ってくれるツール」へ。CI/CD 全体やデプロイ管理には広げず、
+**ドキュメントと品質の番人**に絞る。新機能は既存の doctor / session 基盤に乗せ、
+必ず本リポジトリ自身でドッグフーディングして warn を放置しない。
+
+機能は次の3軸で整理する:
+
+- **導入** — init / workflow install / update / templates
+- **番人** — doctor（--fix / --deep / .foundruurc）/ rules / hooks
+- **記録・引き継ぎ** — session（CHANGELOG 下書き）/ onboard
+
+計測・集約系（dashboard / cloud push）はこの軸から外れるため、本体から公式プラグイン
+`foundruu-plugin-cloud` へ切り出した（コアを「守る」に絞り、計測が欲しい人はプラグインで足す）。
+
+## v1.1 — ライフサイクル拡張（実装済み: PR #34〜#38）
+
+- [x] `foundruu hooks install/uninstall/status`（pre-commit ガードレール）
+- [x] `foundruu rules add/list`（レビュー指摘の規約化）
+- [x] session end 時の CHANGELOG 下書き自動生成
+- [x] doctor 保守運用チェック（docs-freshness / design-promotion）
+- [x] `foundruu onboard`（オンボーディングサマリ + MCP ツール）
+
+## v1.2 — 整理（本体を「番人」に絞る）
+
+- [x] cloud push / dashboard を `foundruu-plugin-cloud` に切り出し
+- [x] README をコマンド追加順から3軸構成に再編
+
 ## v0.1 (MVP) — 本実装
 
 - [x] `foundruu --help` / `--version`

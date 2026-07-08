@@ -8,6 +8,9 @@
 
 ### Changed
 
+- **cloud push / dashboard を公式プラグイン [foundruu-plugin-cloud](plugins/foundruu-plugin-cloud/) へ切り出し**: 本体を「番人（守る）」に絞る方針（[docs/roadmap.md](docs/roadmap.md)）に基づき、計測・集約系の 2 コマンドを本体からプラグインへ移設。利用には `npm i -D foundruu-plugin-cloud`（本リポジトリでは `foundruu.json` の `plugins` でローカル読み込み）が必要。**breaking**: プラグインなしの環境では `foundruu dashboard` / `foundruu cloud push` は使えなくなる。foundruu-cloud リポジトリの Actions も要更新
+- README をコマンド追加順の一覧から「導入 → 番人 → 記録・引き継ぎ」の3軸構成に再編。docs/roadmap.md に製品方針（計測から守るツールへ）と v1.1 / v1.2 の実績を追記
+
 - 可読性改善: 複数行スコープで使われていた1〜2文字変数（`t` / `m` / `nm` / `esc` 等）を意味のある名前へ改名し、エクスポートされる全関数・定数に日本語1行 JSDoc を整備。命名・JSDoc の基準を `.ai/rules/coding-style.md` と CLAUDE.md に規約化（`foundruu rules add` を使用）
 
 ### Added
