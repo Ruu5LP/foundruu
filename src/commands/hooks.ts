@@ -57,6 +57,15 @@ function isOurs(file: string): boolean {
   return fs.existsSync(file) && fs.readFileSync(file, "utf8").includes(HOOK_MARKER);
 }
 
+/** FoundRuu の pre-commit フックが導入済みかを返す（git リポジトリでなければ false） */
+export function isFoundruuHookInstalled(cwd: string): boolean {
+  try {
+    return isOurs(hookFile(cwd));
+  } catch {
+    return false;
+  }
+}
+
 /** pre-commit フックを導入する。FoundRuu 以外の既存フックは force 指定時のみ上書き */
 export function installHooks(cwd: string, options: { force?: boolean } = {}): void {
   const file = hookFile(cwd);

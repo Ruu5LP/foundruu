@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`foundruu onboard` に導入状況セクションを追加**: CLI（package.json の依存）・GitHub Action（.github/workflows）・MCP サーバー（.mcp.json）・pre-commit フックの導入有無を ✔/✖ で一覧表示。未導入の項目には導入コマンドのヒントを添える。MCP の `onboard` ツール経由でも同じ内容が返る
+
 ## [0.13.0] - 2026-07-08
 
 ### Changed

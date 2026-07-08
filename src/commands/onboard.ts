@@ -3,6 +3,7 @@ import path from "path";
 import { runDoctor } from "../doctor/runner";
 import { findAiRoot, readCurrent, readStatus } from "../core/session-store";
 import { sessionNames } from "./session";
+import { isFoundruuHookInstalled } from "./hooks";
 
 /**
  * オンボーディング: 新しいメンバー(人・AI)が「このリポジトリのルール・ワークフロー・
@@ -31,6 +32,65 @@ function readProjectInfo(cwd: string): { name: string; description?: string } {
   return { name: path.basename(cwd) };
 }
 
+/** package.json から CLI(foundruu) の導入状況を1行で表す */
+function cliStatusLine(root: string): string {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")) as {
+      name?: string;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    if (pkg.name === "foundruu") return "- ✔ CLI: 本体リポジトリ（開発版）";
+    const dev = pkg.devDependencies?.["foundruu"];
+    if (dev) return `- ✔ CLI: ${dev}（devDependencies）`;
+    const dep = pkg.dependencies?.["foundruu"];
+    if (dep) return `- ✔ CLI: ${dep}（dependencies）`;
+  } catch {
+    /* package.json が無い・壊れている場合は未導入として扱う */
+  }
+  return "- ✖ CLI: 未導入（導入: `npm i -D foundruu`）";
+}
+
+/** .github/workflows から foundruu を使う GitHub Action の導入状況を1行で表す */
+function actionStatusLine(root: string): string {
+  const dir = path.join(root, ".github", "workflows");
+  if (fs.existsSync(dir)) {
+    const hits = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"))
+      .filter((f) => fs.readFileSync(path.join(dir, f), "utf8").includes("foundruu"))
+      .sort();
+    if (hits.length > 0) return `- ✔ GitHub Action: 組み込み済み（${hits.join(", ")}）`;
+  }
+  return "- ✖ GitHub Action: 未導入（CI で doctor を回す場合は Ruu5LP/foundruu を workflow に追加）";
+}
+
+/** .mcp.json から MCP サーバー登録の有無を1行で表す */
+function mcpStatusLine(root: string): string {
+  try {
+    const config = JSON.parse(fs.readFileSync(path.join(root, ".mcp.json"), "utf8")) as {
+      mcpServers?: Record<string, { command?: string; args?: string[] }>;
+    };
+    const registered = Object.entries(config.mcpServers ?? {}).some(
+      ([name, server]) =>
+        name.includes("foundruu") ||
+        server.command?.includes("foundruu") ||
+        server.args?.some((arg) => arg.includes("foundruu"))
+    );
+    if (registered) return "- ✔ MCP サーバー: .mcp.json に登録済み";
+  } catch {
+    /* .mcp.json が無い・壊れている場合は未登録として扱う */
+  }
+  return "- ✖ MCP サーバー: 未登録（登録: `foundruu mcp` を .mcp.json に追加）";
+}
+
+/** git pre-commit フックの導入状況を1行で表す */
+function hookStatusLine(root: string): string {
+  return isFoundruuHookInstalled(root)
+    ? "- ✔ pre-commit フック: 導入済み（コミット前に doctor が実行されます）"
+    : "- ✖ pre-commit フック: 未導入（導入: `foundruu hooks install`）";
+}
+
 /** リポジトリのオンボーディングサマリ(Markdown)を生成する */
 export function renderOnboarding(cwd: string): string {
   const root = findAiRoot(cwd) ?? cwd;
@@ -40,6 +100,17 @@ export function renderOnboarding(cwd: string): string {
     "",
     ...(project.description ? [project.description, ""] : []),
   ];
+
+  // 導入状況: FoundRuu の各コンポーネントが入っているかを最初に示す
+  lines.push(
+    "## 導入状況",
+    "",
+    cliStatusLine(root),
+    actionStatusLine(root),
+    mcpStatusLine(root),
+    hookStatusLine(root),
+    ""
+  );
 
   // AI ルール: エージェントが最初に読むべきファイル
   const ruleFiles = ["CLAUDE.md", "CODEX.md", "AGENTS.md"].filter((f) =>

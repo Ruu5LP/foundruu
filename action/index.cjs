@@ -7434,6 +7434,110 @@ var init_session = __esm({
   }
 });
 
+// src/commands/hooks.ts
+var hooks_exports = {};
+__export(hooks_exports, {
+  hooksStatus: () => hooksStatus,
+  installHooks: () => installHooks,
+  isFoundruuHookInstalled: () => isFoundruuHookInstalled,
+  uninstallHooks: () => uninstallHooks
+});
+function hooksDir(cwd) {
+  let rel;
+  try {
+    rel = (0, import_child_process5.execFileSync)("git", ["-C", cwd, "rev-parse", "--git-path", "hooks"], { stdio: "pipe" }).toString().trim();
+  } catch {
+    throw new Error("git \u30EA\u30DD\u30B8\u30C8\u30EA\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002git init \u5F8C\u306B\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
+  }
+  return import_path19.default.isAbsolute(rel) ? rel : import_path19.default.join(cwd, rel);
+}
+function hookFile(cwd) {
+  return import_path19.default.join(hooksDir(cwd), "pre-commit");
+}
+function isOurs(file2) {
+  return import_fs19.default.existsSync(file2) && import_fs19.default.readFileSync(file2, "utf8").includes(HOOK_MARKER);
+}
+function isFoundruuHookInstalled(cwd) {
+  try {
+    return isOurs(hookFile(cwd));
+  } catch {
+    return false;
+  }
+}
+function installHooks(cwd, options = {}) {
+  const file2 = hookFile(cwd);
+  if (import_fs19.default.existsSync(file2) && !isOurs(file2) && !options.force) {
+    throw new Error(
+      `\u65E2\u5B58\u306E pre-commit \u30D5\u30C3\u30AF\u304C\u3042\u308A\u307E\u3059: ${file2}
+  \u4E0A\u66F8\u304D\u3059\u308B\u5834\u5408\u306F --force \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u65E2\u5B58\u30D5\u30C3\u30AF\u306E\u5185\u5BB9\u306F\u5931\u308F\u308C\u307E\u3059\uFF09\u3002`
+    );
+  }
+  import_fs19.default.mkdirSync(import_path19.default.dirname(file2), { recursive: true });
+  import_fs19.default.writeFileSync(file2, HOOK_SCRIPT, { mode: 493 });
+  import_fs19.default.chmodSync(file2, 493);
+  log.success("pre-commit \u30D5\u30C3\u30AF\u3092\u5C0E\u5165\u3057\u307E\u3057\u305F: \u30B3\u30DF\u30C3\u30C8\u524D\u306B foundruu doctor \u304C\u5B9F\u884C\u3055\u308C\u307E\u3059");
+  log.info("  fail \u304C\u3042\u308B\u3068\u30B3\u30DF\u30C3\u30C8\u306F\u4E2D\u6B62\u3055\u308C\u307E\u3059\uFF08\u7DCA\u6025\u6642: git commit --no-verify\uFF09");
+}
+function uninstallHooks(cwd) {
+  const file2 = hookFile(cwd);
+  if (!import_fs19.default.existsSync(file2)) {
+    log.info("pre-commit \u30D5\u30C3\u30AF\u306F\u5C0E\u5165\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002");
+    return;
+  }
+  if (!isOurs(file2)) {
+    throw new Error(`pre-commit \u30D5\u30C3\u30AF\u306F FoundRuu \u304C\u751F\u6210\u3057\u305F\u3082\u306E\u3067\u306F\u306A\u3044\u305F\u3081\u524A\u9664\u3057\u307E\u305B\u3093: ${file2}`);
+  }
+  import_fs19.default.rmSync(file2);
+  log.success("pre-commit \u30D5\u30C3\u30AF\u3092\u524A\u9664\u3057\u307E\u3057\u305F");
+}
+function hooksStatus(cwd) {
+  const file2 = hookFile(cwd);
+  if (isOurs(file2)) {
+    log.info("pre-commit \u30D5\u30C3\u30AF: \u5C0E\u5165\u6E08\u307F\uFF08\u30B3\u30DF\u30C3\u30C8\u524D\u306B foundruu doctor \u304C\u5B9F\u884C\u3055\u308C\u307E\u3059\uFF09");
+  } else if (import_fs19.default.existsSync(file2)) {
+    log.info("pre-commit \u30D5\u30C3\u30AF: FoundRuu \u4EE5\u5916\u306E\u30D5\u30C3\u30AF\u304C\u5B58\u5728\u3057\u307E\u3059");
+    log.info("  \u5C0E\u5165\u3059\u308B\u5834\u5408: foundruu hooks install --force\uFF08\u65E2\u5B58\u30D5\u30C3\u30AF\u306F\u4E0A\u66F8\u304D\u3055\u308C\u307E\u3059\uFF09");
+  } else {
+    log.info("pre-commit \u30D5\u30C3\u30AF: \u672A\u5C0E\u5165");
+    log.info("  \u5C0E\u5165\u3059\u308B\u5834\u5408: foundruu hooks install");
+  }
+}
+var import_child_process5, import_fs19, import_path19, HOOK_MARKER, HOOK_SCRIPT;
+var init_hooks = __esm({
+  "src/commands/hooks.ts"() {
+    "use strict";
+    import_child_process5 = require("child_process");
+    import_fs19 = __toESM(require("fs"));
+    import_path19 = __toESM(require("path"));
+    init_logger();
+    HOOK_MARKER = "# FoundRuu pre-commit hook";
+    HOOK_SCRIPT = `#!/bin/sh
+${HOOK_MARKER} \u2014 foundruu hooks install \u3067\u751F\u6210 (\u524A\u9664: foundruu hooks uninstall)
+# \u7DCA\u6025\u6642\u306E\u30B9\u30AD\u30C3\u30D7: git commit --no-verify
+
+if [ -x "./node_modules/.bin/foundruu" ]; then
+  FOUNDRUU="./node_modules/.bin/foundruu"
+elif command -v foundruu >/dev/null 2>&1; then
+  FOUNDRUU="foundruu"
+elif [ -f "./dist/cli.js" ] && grep -q '"name": "foundruu"' package.json 2>/dev/null; then
+  # foundruu \u81EA\u8EAB\u306E\u30EA\u30DD\u30B8\u30C8\u30EA(\u30C9\u30C3\u30B0\u30D5\u30FC\u30C7\u30A3\u30F3\u30B0)
+  FOUNDRUU="node ./dist/cli.js"
+else
+  echo "foundruu \u304C\u898B\u3064\u304B\u3089\u306A\u3044\u305F\u3081 pre-commit \u30C1\u30A7\u30C3\u30AF\u3092\u30B9\u30AD\u30C3\u30D7\u3057\u307E\u3057\u305F" >&2
+  exit 0
+fi
+
+echo "FoundRuu pre-commit: foundruu doctor \u3092\u5B9F\u884C\u3057\u307E\u3059"
+$FOUNDRUU doctor || {
+  echo "" >&2
+  echo "foundruu doctor \u304C fail \u306E\u305F\u3081\u30B3\u30DF\u30C3\u30C8\u3092\u4E2D\u6B62\u3057\u307E\u3057\u305F\u3002fail \u9805\u76EE\u3092\u89E3\u6D88\u3057\u3066\u304F\u3060\u3055\u3044\u3002" >&2
+  echo "(\u7DCA\u6025\u6642\u306F git commit --no-verify \u3067\u30B9\u30AD\u30C3\u30D7\u3067\u304D\u307E\u3059)" >&2
+  exit 1
+}
+`;
+  }
+});
+
 // src/commands/onboard.ts
 var onboard_exports = {};
 __export(onboard_exports, {
@@ -7441,16 +7545,50 @@ __export(onboard_exports, {
   runOnboard: () => runOnboard
 });
 function listMd(dir) {
-  if (!import_fs19.default.existsSync(dir)) return [];
-  return import_fs19.default.readdirSync(dir).filter((f) => f.endsWith(".md")).sort();
+  if (!import_fs20.default.existsSync(dir)) return [];
+  return import_fs20.default.readdirSync(dir).filter((f) => f.endsWith(".md")).sort();
 }
 function readProjectInfo(cwd) {
   try {
-    const pkg = JSON.parse(import_fs19.default.readFileSync(import_path19.default.join(cwd, "package.json"), "utf8"));
+    const pkg = JSON.parse(import_fs20.default.readFileSync(import_path20.default.join(cwd, "package.json"), "utf8"));
     if (pkg.name) return { name: pkg.name, description: pkg.description };
   } catch {
   }
-  return { name: import_path19.default.basename(cwd) };
+  return { name: import_path20.default.basename(cwd) };
+}
+function cliStatusLine(root) {
+  try {
+    const pkg = JSON.parse(import_fs20.default.readFileSync(import_path20.default.join(root, "package.json"), "utf8"));
+    if (pkg.name === "foundruu") return "- \u2714 CLI: \u672C\u4F53\u30EA\u30DD\u30B8\u30C8\u30EA\uFF08\u958B\u767A\u7248\uFF09";
+    const dev = pkg.devDependencies?.["foundruu"];
+    if (dev) return `- \u2714 CLI: ${dev}\uFF08devDependencies\uFF09`;
+    const dep = pkg.dependencies?.["foundruu"];
+    if (dep) return `- \u2714 CLI: ${dep}\uFF08dependencies\uFF09`;
+  } catch {
+  }
+  return "- \u2716 CLI: \u672A\u5C0E\u5165\uFF08\u5C0E\u5165: `npm i -D foundruu`\uFF09";
+}
+function actionStatusLine(root) {
+  const dir = import_path20.default.join(root, ".github", "workflows");
+  if (import_fs20.default.existsSync(dir)) {
+    const hits = import_fs20.default.readdirSync(dir).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml")).filter((f) => import_fs20.default.readFileSync(import_path20.default.join(dir, f), "utf8").includes("foundruu")).sort();
+    if (hits.length > 0) return `- \u2714 GitHub Action: \u7D44\u307F\u8FBC\u307F\u6E08\u307F\uFF08${hits.join(", ")}\uFF09`;
+  }
+  return "- \u2716 GitHub Action: \u672A\u5C0E\u5165\uFF08CI \u3067 doctor \u3092\u56DE\u3059\u5834\u5408\u306F Ruu5LP/foundruu \u3092 workflow \u306B\u8FFD\u52A0\uFF09";
+}
+function mcpStatusLine(root) {
+  try {
+    const config2 = JSON.parse(import_fs20.default.readFileSync(import_path20.default.join(root, ".mcp.json"), "utf8"));
+    const registered = Object.entries(config2.mcpServers ?? {}).some(
+      ([name, server]) => name.includes("foundruu") || server.command?.includes("foundruu") || server.args?.some((arg) => arg.includes("foundruu"))
+    );
+    if (registered) return "- \u2714 MCP \u30B5\u30FC\u30D0\u30FC: .mcp.json \u306B\u767B\u9332\u6E08\u307F";
+  } catch {
+  }
+  return "- \u2716 MCP \u30B5\u30FC\u30D0\u30FC: \u672A\u767B\u9332\uFF08\u767B\u9332: `foundruu mcp` \u3092 .mcp.json \u306B\u8FFD\u52A0\uFF09";
+}
+function hookStatusLine(root) {
+  return isFoundruuHookInstalled(root) ? "- \u2714 pre-commit \u30D5\u30C3\u30AF: \u5C0E\u5165\u6E08\u307F\uFF08\u30B3\u30DF\u30C3\u30C8\u524D\u306B doctor \u304C\u5B9F\u884C\u3055\u308C\u307E\u3059\uFF09" : "- \u2716 pre-commit \u30D5\u30C3\u30AF: \u672A\u5C0E\u5165\uFF08\u5C0E\u5165: `foundruu hooks install`\uFF09";
 }
 function renderOnboarding(cwd) {
   const root = findAiRoot(cwd) ?? cwd;
@@ -7460,10 +7598,19 @@ function renderOnboarding(cwd) {
     "",
     ...project.description ? [project.description, ""] : []
   ];
-  const ruleFiles = ["CLAUDE.md", "CODEX.md", "AGENTS.md"].filter(
-    (f) => import_fs19.default.existsSync(import_path19.default.join(root, f))
+  lines.push(
+    "## \u5C0E\u5165\u72B6\u6CC1",
+    "",
+    cliStatusLine(root),
+    actionStatusLine(root),
+    mcpStatusLine(root),
+    hookStatusLine(root),
+    ""
   );
-  const aiRules = listMd(import_path19.default.join(root, ".ai", "rules"));
+  const ruleFiles = ["CLAUDE.md", "CODEX.md", "AGENTS.md"].filter(
+    (f) => import_fs20.default.existsSync(import_path20.default.join(root, f))
+  );
+  const aiRules = listMd(import_path20.default.join(root, ".ai", "rules"));
   lines.push("## \u6700\u521D\u306B\u8AAD\u3080\u3079\u304D\u30EB\u30FC\u30EB", "");
   if (ruleFiles.length === 0 && aiRules.length === 0) {
     lines.push("- \uFF08AI \u30EB\u30FC\u30EB\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002`foundruu init` \u3067\u5C0E\u5165\u3067\u304D\u307E\u3059\uFF09");
@@ -7472,8 +7619,8 @@ function renderOnboarding(cwd) {
     lines.push(...aiRules.map((f) => `- .ai/rules/${f}`));
   }
   lines.push("");
-  const workflows = listMd(import_path19.default.join(root, ".ai", "workflows"));
-  const prompts = listMd(import_path19.default.join(root, ".ai", "prompts"));
+  const workflows = listMd(import_path20.default.join(root, ".ai", "workflows"));
+  const prompts = listMd(import_path20.default.join(root, ".ai", "prompts"));
   if (workflows.length > 0 || prompts.length > 0) {
     lines.push("## \u4F5C\u696D\u306E\u9032\u3081\u65B9", "");
     if (prompts.includes("session-workflow.md")) {
@@ -7527,15 +7674,16 @@ function renderOnboarding(cwd) {
 function runOnboard(cwd) {
   console.log(renderOnboarding(cwd));
 }
-var import_fs19, import_path19;
+var import_fs20, import_path20;
 var init_onboard = __esm({
   "src/commands/onboard.ts"() {
     "use strict";
-    import_fs19 = __toESM(require("fs"));
-    import_path19 = __toESM(require("path"));
+    import_fs20 = __toESM(require("fs"));
+    import_path20 = __toESM(require("path"));
     init_runner();
     init_session_store();
     init_session();
+    init_hooks();
   }
 });
 
@@ -7551,48 +7699,48 @@ function rulesFile(cwd, file2) {
   if (name.includes("/") || name.includes("\\")) {
     throw new Error(`\u30EB\u30FC\u30EB\u30D5\u30A1\u30A4\u30EB\u540D\u306B\u30D1\u30B9\u533A\u5207\u308A\u306F\u4F7F\u3048\u307E\u305B\u3093: ${name}`);
   }
-  return import_path20.default.join(root, ".ai", "rules", name.endsWith(".md") ? name : `${name}.md`);
+  return import_path21.default.join(root, ".ai", "rules", name.endsWith(".md") ? name : `${name}.md`);
 }
 function addRule(cwd, text2, options = {}) {
   if (!text2.trim()) {
     throw new Error("\u8FFD\u52A0\u3059\u308B\u898F\u7D04\u306E\u5185\u5BB9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
   }
   const file2 = rulesFile(cwd, options.file);
-  import_fs20.default.mkdirSync(import_path20.default.dirname(file2), { recursive: true });
-  const exists = import_fs20.default.existsSync(file2);
+  import_fs21.default.mkdirSync(import_path21.default.dirname(file2), { recursive: true });
+  const exists = import_fs21.default.existsSync(file2);
   const date5 = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
   const entry = `- ${text2.trim()}\uFF08${date5} \u8FFD\u52A0\uFF09
 `;
-  import_fs20.default.appendFileSync(file2, (exists ? "" : FILE_HEADER + "\n") + entry);
-  const rel = import_path20.default.relative(cwd, file2);
+  import_fs21.default.appendFileSync(file2, (exists ? "" : FILE_HEADER + "\n") + entry);
+  const rel = import_path21.default.relative(cwd, file2);
   log.success(`\u898F\u7D04\u3092\u8FFD\u52A0\u3057\u307E\u3057\u305F: ${rel}`);
   log.info(`  ${entry.trim()}`);
 }
 function listRules(cwd) {
   const root = requireAiRoot(cwd);
-  const dir = import_path20.default.join(root, ".ai", "rules");
-  if (!import_fs20.default.existsSync(dir)) {
+  const dir = import_path21.default.join(root, ".ai", "rules");
+  if (!import_fs21.default.existsSync(dir)) {
     log.info(".ai/rules \u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002foundruu rules add \u3067\u4F5C\u6210\u3067\u304D\u307E\u3059\u3002");
     return;
   }
-  const files = import_fs20.default.readdirSync(dir).filter((f) => f.endsWith(".md")).sort();
+  const files = import_fs21.default.readdirSync(dir).filter((f) => f.endsWith(".md")).sort();
   if (files.length === 0) {
     log.info(".ai/rules \u306B\u30EB\u30FC\u30EB\u30D5\u30A1\u30A4\u30EB\u306F\u3042\u308A\u307E\u305B\u3093\u3002");
     return;
   }
   log.info("\u30EB\u30FC\u30EB\u30D5\u30A1\u30A4\u30EB (.ai/rules/):");
   for (const f of files) {
-    const content = import_fs20.default.readFileSync(import_path20.default.join(dir, f), "utf8");
+    const content = import_fs21.default.readFileSync(import_path21.default.join(dir, f), "utf8");
     const rules2 = content.split("\n").filter((l) => l.startsWith("- ")).length;
     log.info(`  - ${f}\uFF08${rules2} \u4EF6\uFF09`);
   }
 }
-var import_fs20, import_path20, DEFAULT_RULES_FILE, FILE_HEADER;
+var import_fs21, import_path21, DEFAULT_RULES_FILE, FILE_HEADER;
 var init_rules = __esm({
   "src/commands/rules.ts"() {
     "use strict";
-    import_fs20 = __toESM(require("fs"));
-    import_path20 = __toESM(require("path"));
+    import_fs21 = __toESM(require("fs"));
+    import_path21 = __toESM(require("path"));
     init_logger();
     init_session_store();
     DEFAULT_RULES_FILE = "review-feedback.md";
@@ -7600,102 +7748,6 @@ var init_rules = __esm({
 
 \u30EC\u30D3\u30E5\u30FC\u3067\u6307\u6458\u3055\u308C\u305F\u5185\u5BB9\u3092\u518D\u767A\u9632\u6B62\u306E\u305F\u3081\u898F\u7D04\u5316\u3057\u305F\u3082\u306E\u3067\u3059\u3002
 \`foundruu rules add "<\u6307\u6458\u5185\u5BB9>"\` \u3067\u8FFD\u8A18\u3055\u308C\u307E\u3059\u3002\u5B9F\u88C5\u30FB\u30EC\u30D3\u30E5\u30FC\u524D\u306B\u5FC5\u305A\u8AAD\u3093\u3067\u304F\u3060\u3055\u3044\u3002
-`;
-  }
-});
-
-// src/commands/hooks.ts
-var hooks_exports = {};
-__export(hooks_exports, {
-  hooksStatus: () => hooksStatus,
-  installHooks: () => installHooks,
-  uninstallHooks: () => uninstallHooks
-});
-function hooksDir(cwd) {
-  let rel;
-  try {
-    rel = (0, import_child_process5.execFileSync)("git", ["-C", cwd, "rev-parse", "--git-path", "hooks"], { stdio: "pipe" }).toString().trim();
-  } catch {
-    throw new Error("git \u30EA\u30DD\u30B8\u30C8\u30EA\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002git init \u5F8C\u306B\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002");
-  }
-  return import_path21.default.isAbsolute(rel) ? rel : import_path21.default.join(cwd, rel);
-}
-function hookFile(cwd) {
-  return import_path21.default.join(hooksDir(cwd), "pre-commit");
-}
-function isOurs(file2) {
-  return import_fs21.default.existsSync(file2) && import_fs21.default.readFileSync(file2, "utf8").includes(HOOK_MARKER);
-}
-function installHooks(cwd, options = {}) {
-  const file2 = hookFile(cwd);
-  if (import_fs21.default.existsSync(file2) && !isOurs(file2) && !options.force) {
-    throw new Error(
-      `\u65E2\u5B58\u306E pre-commit \u30D5\u30C3\u30AF\u304C\u3042\u308A\u307E\u3059: ${file2}
-  \u4E0A\u66F8\u304D\u3059\u308B\u5834\u5408\u306F --force \u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\uFF08\u65E2\u5B58\u30D5\u30C3\u30AF\u306E\u5185\u5BB9\u306F\u5931\u308F\u308C\u307E\u3059\uFF09\u3002`
-    );
-  }
-  import_fs21.default.mkdirSync(import_path21.default.dirname(file2), { recursive: true });
-  import_fs21.default.writeFileSync(file2, HOOK_SCRIPT, { mode: 493 });
-  import_fs21.default.chmodSync(file2, 493);
-  log.success("pre-commit \u30D5\u30C3\u30AF\u3092\u5C0E\u5165\u3057\u307E\u3057\u305F: \u30B3\u30DF\u30C3\u30C8\u524D\u306B foundruu doctor \u304C\u5B9F\u884C\u3055\u308C\u307E\u3059");
-  log.info("  fail \u304C\u3042\u308B\u3068\u30B3\u30DF\u30C3\u30C8\u306F\u4E2D\u6B62\u3055\u308C\u307E\u3059\uFF08\u7DCA\u6025\u6642: git commit --no-verify\uFF09");
-}
-function uninstallHooks(cwd) {
-  const file2 = hookFile(cwd);
-  if (!import_fs21.default.existsSync(file2)) {
-    log.info("pre-commit \u30D5\u30C3\u30AF\u306F\u5C0E\u5165\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002");
-    return;
-  }
-  if (!isOurs(file2)) {
-    throw new Error(`pre-commit \u30D5\u30C3\u30AF\u306F FoundRuu \u304C\u751F\u6210\u3057\u305F\u3082\u306E\u3067\u306F\u306A\u3044\u305F\u3081\u524A\u9664\u3057\u307E\u305B\u3093: ${file2}`);
-  }
-  import_fs21.default.rmSync(file2);
-  log.success("pre-commit \u30D5\u30C3\u30AF\u3092\u524A\u9664\u3057\u307E\u3057\u305F");
-}
-function hooksStatus(cwd) {
-  const file2 = hookFile(cwd);
-  if (isOurs(file2)) {
-    log.info("pre-commit \u30D5\u30C3\u30AF: \u5C0E\u5165\u6E08\u307F\uFF08\u30B3\u30DF\u30C3\u30C8\u524D\u306B foundruu doctor \u304C\u5B9F\u884C\u3055\u308C\u307E\u3059\uFF09");
-  } else if (import_fs21.default.existsSync(file2)) {
-    log.info("pre-commit \u30D5\u30C3\u30AF: FoundRuu \u4EE5\u5916\u306E\u30D5\u30C3\u30AF\u304C\u5B58\u5728\u3057\u307E\u3059");
-    log.info("  \u5C0E\u5165\u3059\u308B\u5834\u5408: foundruu hooks install --force\uFF08\u65E2\u5B58\u30D5\u30C3\u30AF\u306F\u4E0A\u66F8\u304D\u3055\u308C\u307E\u3059\uFF09");
-  } else {
-    log.info("pre-commit \u30D5\u30C3\u30AF: \u672A\u5C0E\u5165");
-    log.info("  \u5C0E\u5165\u3059\u308B\u5834\u5408: foundruu hooks install");
-  }
-}
-var import_child_process5, import_fs21, import_path21, HOOK_MARKER, HOOK_SCRIPT;
-var init_hooks = __esm({
-  "src/commands/hooks.ts"() {
-    "use strict";
-    import_child_process5 = require("child_process");
-    import_fs21 = __toESM(require("fs"));
-    import_path21 = __toESM(require("path"));
-    init_logger();
-    HOOK_MARKER = "# FoundRuu pre-commit hook";
-    HOOK_SCRIPT = `#!/bin/sh
-${HOOK_MARKER} \u2014 foundruu hooks install \u3067\u751F\u6210 (\u524A\u9664: foundruu hooks uninstall)
-# \u7DCA\u6025\u6642\u306E\u30B9\u30AD\u30C3\u30D7: git commit --no-verify
-
-if [ -x "./node_modules/.bin/foundruu" ]; then
-  FOUNDRUU="./node_modules/.bin/foundruu"
-elif command -v foundruu >/dev/null 2>&1; then
-  FOUNDRUU="foundruu"
-elif [ -f "./dist/cli.js" ] && grep -q '"name": "foundruu"' package.json 2>/dev/null; then
-  # foundruu \u81EA\u8EAB\u306E\u30EA\u30DD\u30B8\u30C8\u30EA(\u30C9\u30C3\u30B0\u30D5\u30FC\u30C7\u30A3\u30F3\u30B0)
-  FOUNDRUU="node ./dist/cli.js"
-else
-  echo "foundruu \u304C\u898B\u3064\u304B\u3089\u306A\u3044\u305F\u3081 pre-commit \u30C1\u30A7\u30C3\u30AF\u3092\u30B9\u30AD\u30C3\u30D7\u3057\u307E\u3057\u305F" >&2
-  exit 0
-fi
-
-echo "FoundRuu pre-commit: foundruu doctor \u3092\u5B9F\u884C\u3057\u307E\u3059"
-$FOUNDRUU doctor || {
-  echo "" >&2
-  echo "foundruu doctor \u304C fail \u306E\u305F\u3081\u30B3\u30DF\u30C3\u30C8\u3092\u4E2D\u6B62\u3057\u307E\u3057\u305F\u3002fail \u9805\u76EE\u3092\u89E3\u6D88\u3057\u3066\u304F\u3060\u3055\u3044\u3002" >&2
-  echo "(\u7DCA\u6025\u6642\u306F git commit --no-verify \u3067\u30B9\u30AD\u30C3\u30D7\u3067\u304D\u307E\u3059)" >&2
-  exit 1
-}
 `;
   }
 });

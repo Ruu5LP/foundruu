@@ -49,6 +49,38 @@ describe("renderOnboarding", () => {
     expect(md).toContain("fail");
   });
 
+  it("導入状況: 未導入コンポーネントは ✖ と導入ヒント付きで列挙される (AC-1, AC-2)", () => {
+    const md = renderOnboarding(tmp);
+    expect(md).toContain("## 導入状況");
+    expect(md).toContain("- ✖ CLI: 未導入（導入: `npm i -D foundruu`）");
+    expect(md).toContain("- ✖ GitHub Action: 未導入");
+    expect(md).toContain("- ✖ MCP サーバー: 未登録");
+    expect(md).toContain("- ✖ pre-commit フック: 未導入（導入: `foundruu hooks install`）");
+  });
+
+  it("導入状況: devDependencies / workflow / .mcp.json を検出して ✔ で表示する (AC-1)", () => {
+    write(
+      "package.json",
+      JSON.stringify({ name: "my-app", devDependencies: { foundruu: "^0.13.0" } })
+    );
+    write(".github/workflows/ci.yml", "uses: Ruu5LP/foundruu@v1\n");
+    write(
+      ".mcp.json",
+      JSON.stringify({ mcpServers: { foundruu: { command: "npx", args: ["foundruu", "mcp"] } } })
+    );
+
+    const md = renderOnboarding(tmp);
+    expect(md).toContain("- ✔ CLI: ^0.13.0（devDependencies）");
+    expect(md).toContain("- ✔ GitHub Action: 組み込み済み（ci.yml）");
+    expect(md).toContain("- ✔ MCP サーバー: .mcp.json に登録済み");
+  });
+
+  it("導入状況: 本体リポジトリでは CLI が開発版として表示される (AC-3)", () => {
+    write("package.json", JSON.stringify({ name: "foundruu" }));
+    const md = renderOnboarding(tmp);
+    expect(md).toContain("- ✔ CLI: 本体リポジトリ（開発版）");
+  });
+
   it("doctor の fail / warn 項目は hint 付きで列挙される", () => {
     const md = renderOnboarding(tmp);
     expect(md).toMatch(/✖ README: /);
